@@ -1,8 +1,4 @@
-import controllers.ChestAndEggBreaker;
-import controllers.SafeZoneHandler;
-import controllers.GunSearcher;
-import controllers.CombatManager;
-import controllers.ChestAndEggBreaker;
+import controllers.*;
 
 import io.socket.emitter.Emitter;
 import jsclub.codefest.sdk.Hero;
@@ -13,15 +9,23 @@ public class MapUpdateListener implements Emitter.Listener {
     private final Hero hero;
     private final SafeZoneHandler safeZoneHandler;
     private final GunSearcher gunSearcher;
-    private final CombatManager combatManager;
     private final ChestAndEggBreaker chestAndEggBreaker;
+    private final ArmorSearcher armorSearcher;
+    private final MeleeSearcher meleeSearcher;
+    private final HealingItemSearcher healingItemSearcher;
+    private final ThrowableSearcher throwableSearcher;
+    private final CombatManager combatManager;
 
     public MapUpdateListener(Hero hero) {
         this.hero = hero;
-        this.safeZoneHandler = new SafeZoneHandler(hero); // Khởi tạo đúng
+        this.safeZoneHandler = new SafeZoneHandler(hero);
         this.gunSearcher = new GunSearcher(hero);
-        this.combatManager = new CombatManager(hero);// Khởi tạo đúng
         this.chestAndEggBreaker = new ChestAndEggBreaker(hero);
+        this.armorSearcher = new ArmorSearcher(hero);
+        this.meleeSearcher = new MeleeSearcher(hero);
+        this.healingItemSearcher = new HealingItemSearcher(hero);
+        this.throwableSearcher = new ThrowableSearcher(hero);
+        this.combatManager = new CombatManager(hero);
     }
 
     @Override
@@ -31,35 +35,41 @@ public class MapUpdateListener implements Emitter.Listener {
 
             GameMap gameMap = hero.getGameMap();
             gameMap.updateOnUpdateMap(args[0]);
-
             Player player = gameMap.getCurrentPlayer();
-            if (player == null || player.getHealth() == 0) {
+
+            if (player == null || player.getHealth() <= 0) {
                 System.out.println("Player is dead or data is not available.");
                 return;
             }
 
-            // Step 1: Di chuyển vào safe zone nếu cần
+            // 1. Nếu ở ngoài safe zone → vào ngay
             if (!safeZoneHandler.isInSafeZone(player)) {
                 safeZoneHandler.moveToSafeZone(player);
                 return;
             }
 
-            // Step 2: Tìm và nhặt súng nếu chưa có
+            // 2. Nhặt súng nếu chưa có
             if (hero.getInventory().getGun() == null) {
                 gunSearcher.searchAndPickup(gameMap, player);
                 return;
             }
 
-            // Step 3: (Tuỳ chọn) Gắn thêm các logic khác tại đây, ví dụ:
-            //Combat
+            // 3. Phá rương hoặc trứng nếu gần
+            if (chestAndEggBreaker.breakNearestIfInRange()) {
+                return;
+            }
+
+            // 4. Ưu tiên nhặt đồ theo thứ tự: giáp → cận chiến → hồi máu → throwable
+            armorSearcher.searchAndPickup(gameMap, player);
+            meleeSearcher.searchAndPickup(gameMap, player);
+            healingItemSearcher.searchAndPickup(gameMap, player);
+            throwableSearcher.searchAndPickup(gameMap, player);
+
+            // 5. Tấn công player khác nếu gần
             combatManager.engageEnemy();
 
-            // phá chest
-            chestAndEggBreaker.breakNearbyChestOrEgg();
-            // itemManager.pickupHealingIfLowHP();
-
         } catch (Exception e) {
-            System.err.println("Critical error in call method: " + e.getMessage());
+            System.err.println("Critical error in MapUpdateListener: " + e.getMessage());
             e.printStackTrace();
         }
     }
