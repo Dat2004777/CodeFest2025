@@ -21,7 +21,7 @@ public class ChestAndEggBreaker {
     }
 
     /**
-     * Trả về true nếu đã tấn công thành công 1 rương/trứng ở kế bên.
+     * Trả về true nếu đã tấn công thành công 1 rương/trứng ở kế bên (nằm trong vùng an toàn).
      */
     public boolean breakIfAdjacent() {
         GameMap map = hero.getGameMap();
@@ -30,8 +30,8 @@ public class ChestAndEggBreaker {
         List<Obstacle> targets = new ArrayList<>();
 
         for (Obstacle o : chests) {
-            String id = o.getId();
-            if (id.startsWith("CHEST") || id.startsWith("DRAGON_EGG")) {
+            if ((o.getId().startsWith("CHEST") || o.getId().startsWith("DRAGON_EGG")) &&
+                    PathUtils.checkInsideSafeArea(new Node(o.getX(), o.getY()), map.getSafeZone(), map.getMapSize())) {
                 targets.add(o);
             }
         }
@@ -62,7 +62,7 @@ public class ChestAndEggBreaker {
     }
 
     /**
-     * Di chuyển đến gần rương/trứng (1 ô kề bên) nếu có, tránh vật cản. Trả về true nếu có di chuyển.
+     * Di chuyển đến gần rương/trứng (1 ô kề bên) nếu có, tránh vật cản và chỉ nếu trong safe zone.
      */
     public boolean moveToChestOrEgg() {
         GameMap map = hero.getGameMap();
@@ -71,8 +71,8 @@ public class ChestAndEggBreaker {
         List<Obstacle> targets = new ArrayList<>();
 
         for (Obstacle o : chests) {
-            String id = o.getId();
-            if (id.startsWith("CHEST") || id.startsWith("DRAGON_EGG")) {
+            if ((o.getId().startsWith("CHEST") || o.getId().startsWith("DRAGON_EGG")) &&
+                    PathUtils.checkInsideSafeArea(new Node(o.getX(), o.getY()), map.getSafeZone(), map.getMapSize())) {
                 targets.add(o);
             }
         }
@@ -113,9 +113,14 @@ public class ChestAndEggBreaker {
         return "";
     }
 
+    /**
+     * Trả về khoảng cách tới rương/trứng gần nhất nằm trong vùng an toàn
+     */
     public int getClosestChestDistance(GameMap map, Player self) {
         return map.getListChests().stream()
-                .filter(o -> o.getId().startsWith("CHEST") || o.getId().startsWith("DRAGON_EGG"))
+                .filter(o ->
+                        (o.getId().startsWith("CHEST") || o.getId().startsWith("DRAGON_EGG")) &&
+                                PathUtils.checkInsideSafeArea(new Node(o.getX(), o.getY()), map.getSafeZone(), map.getMapSize()))
                 .mapToInt(o -> Math.abs(o.getX() - self.getX()) + Math.abs(o.getY() - self.getY()))
                 .min()
                 .orElse(Integer.MAX_VALUE);

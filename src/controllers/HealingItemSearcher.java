@@ -22,10 +22,18 @@ public class HealingItemSearcher {
         List<HealingItem> items = map.getListHealingItems();
         if (items.isEmpty()) return false;
 
+        int mapSize = map.getMapSize();
+        int safeZone = map.getSafeZone();
+
         HealingItem closest = null;
         int minDist = Integer.MAX_VALUE;
 
         for (HealingItem item : items) {
+            Node itemNode = new Node(item.getX(), item.getY());
+
+            // Chỉ xét item trong vùng sáng
+            if (!PathUtils.checkInsideSafeArea(itemNode, safeZone, mapSize)) continue;
+
             int dist = Math.abs(item.getX() - player.getX()) + Math.abs(item.getY() - player.getY());
             if (dist < minDist) {
                 minDist = dist;
@@ -39,15 +47,16 @@ public class HealingItemSearcher {
             if (sameCell) {
                 try {
                     hero.pickupItem();
-                    System.out.println("Picked up healing item at: " + closest.getX() + "," + closest.getY());
+                    System.out.println("❤️ Picked up healing item at: " + closest.getX() + "," + closest.getY());
                     return true;
                 } catch (IOException e) {
-                    System.err.println("Failed to pickup healing item: " + e.getMessage());
+                    System.err.println("❌ Failed to pickup healing item: " + e.getMessage());
                 }
             } else {
                 return moveTo(player, closest.getX(), closest.getY(), map);
             }
         }
+
         return false;
     }
 
@@ -60,13 +69,13 @@ public class HealingItemSearcher {
         if (path != null && !path.isEmpty()) {
             try {
                 hero.move(path);
-                System.out.println("Moving to healing item: " + path);
+                System.out.println("➡️ Moving to healing item: " + path);
                 return true;
             } catch (IOException e) {
-                System.err.println("Failed to move to healing item: " + e.getMessage());
+                System.err.println("❌ Failed to move to healing item: " + e.getMessage());
             }
         } else {
-            System.out.println("No path to healing item due to obstacles.");
+            System.out.println("⚠️ No path to healing item due to obstacles.");
         }
         return false;
     }

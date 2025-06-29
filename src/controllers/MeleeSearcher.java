@@ -22,10 +22,18 @@ public class MeleeSearcher {
         List<Weapon> melees = map.getAllMelee();
         if (melees.isEmpty()) return false;
 
+        int mapSize = map.getMapSize();
+        int safeZone = map.getSafeZone();
+
         Weapon closest = null;
         int minDist = Integer.MAX_VALUE;
 
         for (Weapon m : melees) {
+            Node node = new Node(m.getX(), m.getY());
+
+            // Chỉ xét melee trong vùng an toàn
+            if (!PathUtils.checkInsideSafeArea(node, safeZone, mapSize)) continue;
+
             int dist = Math.abs(m.getX() - player.getX()) + Math.abs(m.getY() - player.getY());
             if (dist < minDist) {
                 minDist = dist;
@@ -38,10 +46,10 @@ public class MeleeSearcher {
             if (sameCell) {
                 try {
                     hero.pickupItem();
-                    System.out.println("Picked up melee at: " + closest.getX() + "," + closest.getY());
+                    System.out.println("🗡️ Picked up melee at: " + closest.getX() + "," + closest.getY());
                     return true;
                 } catch (IOException e) {
-                    System.err.println("Failed to pickup melee: " + e.getMessage());
+                    System.err.println("❌ Failed to pickup melee: " + e.getMessage());
                 }
             } else {
                 return moveTo(player, closest.getX(), closest.getY(), map);
@@ -60,13 +68,13 @@ public class MeleeSearcher {
         if (path != null && !path.isEmpty()) {
             try {
                 hero.move(path);
-                System.out.println("Moving to melee: " + path);
+                System.out.println("➡️ Moving to melee: " + path);
                 return true;
             } catch (IOException e) {
-                System.err.println("Failed to move to melee: " + e.getMessage());
+                System.err.println("❌ Failed to move to melee: " + e.getMessage());
             }
         } else {
-            System.out.println("No path to melee due to obstacles.");
+            System.out.println("⚠️ No path to melee due to obstacles.");
         }
         return false;
     }

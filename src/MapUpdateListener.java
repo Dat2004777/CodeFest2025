@@ -23,11 +23,11 @@ public class MapUpdateListener implements Emitter.Listener {
         this.safeZoneHandler = new SafeZoneHandler(hero);
         this.gunSearcher = new GunSearcher(hero);
         this.chestAndEggBreaker = new ChestAndEggBreaker(hero);
+        this.combatManager = new CombatManager(hero);
         this.armorSearcher = new ArmorSearcher(hero);
         this.meleeSearcher = new MeleeSearcher(hero);
         this.healingItemSearcher = new HealingItemSearcher(hero);
         this.throwableSearcher = new ThrowableSearcher(hero);
-        this.combatManager = new CombatManager(hero);
     }
 
     @Override
