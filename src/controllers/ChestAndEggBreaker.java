@@ -6,6 +6,7 @@ import jsclub.codefest.sdk.algorithm.PathUtils;
 import jsclub.codefest.sdk.model.GameMap;
 import jsclub.codefest.sdk.model.obstacles.Obstacle;
 import jsclub.codefest.sdk.model.players.Player;
+import utils.DodgeUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class ChestAndEggBreaker {
     }
 
     /**
-     * Trả về true chỉ khi đã tấn công rương/trứng ở gần (không phải khi di chuyển).
+     * Trả về true nếu đã tấn công thành công 1 rương/trứng ở kế bên.
      */
     public boolean breakIfAdjacent() {
         GameMap map = hero.getGameMap();
@@ -37,7 +38,6 @@ public class ChestAndEggBreaker {
 
         if (targets.isEmpty()) return false;
 
-        // Tìm mục tiêu gần nhất
         Obstacle closest = targets.stream()
                 .min(Comparator.comparingInt(o ->
                         Math.abs(o.getX() - self.getX()) + Math.abs(o.getY() - self.getY())))
@@ -51,19 +51,20 @@ public class ChestAndEggBreaker {
         if (dist == 1 && !direction.isEmpty()) {
             try {
                 hero.attack(direction);
-                System.out.println("Attacking chest/egg at: " + direction);
+                System.out.println("🪓 Attacking chest/egg at direction: " + direction);
                 return true;
             } catch (IOException e) {
-                System.err.println("Failed to attack chest/egg: " + e.getMessage());
+                System.err.println("❌ Failed to attack chest/egg: " + e.getMessage());
             }
         }
 
-        // Nếu không gần → KHÔNG return true (để các controller khác có thể được gọi)
         return false;
     }
 
-    // Nếu bạn vẫn muốn di chuyển về phía chest/egg thì gọi hàm này riêng
-    public void moveToChestOrEgg() {
+    /**
+     * Di chuyển đến gần rương/trứng (1 ô kề bên) nếu có, tránh vật cản. Trả về true nếu có di chuyển.
+     */
+    public boolean moveToChestOrEgg() {
         GameMap map = hero.getGameMap();
         Player self = map.getCurrentPlayer();
         List<Obstacle> chests = map.getListChests();
@@ -76,27 +77,34 @@ public class ChestAndEggBreaker {
             }
         }
 
-        if (targets.isEmpty()) return;
+        if (targets.isEmpty()) return false;
 
         Obstacle closest = targets.stream()
                 .min(Comparator.comparingInt(o ->
                         Math.abs(o.getX() - self.getX()) + Math.abs(o.getY() - self.getY())))
                 .orElse(null);
 
-        if (closest == null) return;
+        if (closest == null) return false;
 
         Node from = new Node(self.getX(), self.getY());
         Node to = new Node(closest.getX(), closest.getY());
-        String path = PathUtils.getShortestPath(map, List.of(), from, to, false);
+        List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
+
+        String path = PathUtils.getShortestPath(map, avoid, from, to, false);
 
         if (path != null && !path.isEmpty()) {
             try {
                 hero.move(path);
-                System.out.println("Moving to chest/egg: " + path);
+                System.out.println("🚶 Moving to chest/egg: " + path);
+                return true;
             } catch (IOException e) {
-                System.err.println("Failed to move to chest/egg: " + e.getMessage());
+                System.err.println("❌ Failed to move to chest/egg: " + e.getMessage());
             }
+        } else {
+            System.out.println("⚠ No path to chest/egg due to obstacles.");
         }
+
+        return false;
     }
 
     private String getDirection(int x1, int y1, int x2, int y2) {
@@ -104,5 +112,12 @@ public class ChestAndEggBreaker {
         else if (y1 == y2) return x2 < x1 ? "l" : "r";
         return "";
     }
-}
 
+    public int getClosestChestDistance(GameMap map, Player self) {
+        return map.getListChests().stream()
+                .filter(o -> o.getId().startsWith("CHEST") || o.getId().startsWith("DRAGON_EGG"))
+                .mapToInt(o -> Math.abs(o.getX() - self.getX()) + Math.abs(o.getY() - self.getY()))
+                .min()
+                .orElse(Integer.MAX_VALUE);
+    }
+}

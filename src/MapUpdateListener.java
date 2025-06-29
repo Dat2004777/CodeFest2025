@@ -16,7 +16,6 @@ public class MapUpdateListener implements Emitter.Listener {
     private final ThrowableSearcher throwableSearcher;
     private final CombatManager combatManager;
 
-    // Trạng thái: vừa đập rương
     private boolean justBrokeChest = false;
 
     public MapUpdateListener(Hero hero) {
@@ -45,44 +44,61 @@ public class MapUpdateListener implements Emitter.Listener {
                 return;
             }
 
-            // 1. Nếu ở ngoài safe zone → vào ngay
+            // 1. Đi vào SafeZone nếu cần
             if (!safeZoneHandler.isInSafeZone(player)) {
+                System.out.println("🔵 Moving to Safe Zone");
                 safeZoneHandler.moveToSafeZone(player);
                 return;
             }
 
             // 2. Nhặt súng nếu chưa có
             if (hero.getInventory().getGun() == null) {
+                System.out.println("🔫 Searching for Gun");
                 gunSearcher.searchAndPickup(gameMap, player);
                 return;
             }
 
-            // 3. Tấn công nếu đang đứng cạnh chest/egg
-            if (chestAndEggBreaker.breakIfAdjacent()) {
-                justBrokeChest = true; // đánh dấu rằng vừa phá rương
-                return;
+            // 3. Tính khoảng cách đến rương và enemy
+            int distToChest = chestAndEggBreaker.getClosestChestDistance(gameMap, player);
+            int distToEnemy = combatManager.getClosestEnemyDistance(gameMap, player);
+
+            // 4. Ưu tiên mục tiêu gần hơn: rương hoặc địch
+            if (distToChest <= distToEnemy) {
+                if (chestAndEggBreaker.breakIfAdjacent()) {
+                    System.out.println("💥 Broke chest/egg nearby");
+                    justBrokeChest = true;
+                    return;
+                }
+
+                if (justBrokeChest) {
+                    System.out.println("⏳ Waiting 1 turn after chest break");
+                    justBrokeChest = false;
+                    return;
+                }
+
+                if (chestAndEggBreaker.moveToChestOrEgg()) {
+                    System.out.println("📦 Moving toward chest/egg");
+                    return;
+                }
+
+            } else {
+                if (combatManager.engageEnemy()) {
+                    System.out.println("⚔️ Attacking nearby player");
+                    return;
+                }
             }
 
-            // 4. Nếu bước trước vừa phá rương, bỏ qua nhặt đồ để đợi vật phẩm spawn
-            if (justBrokeChest) {
-                justBrokeChest = false; // reset trạng thái
-                return;
-            }
+            // 5. Nếu không có hành động chính nào → nhặt item
+            if (armorSearcher.searchAndPickup(gameMap, player)) return;
+            if (meleeSearcher.searchAndPickup(gameMap, player)) return;
+            if (healingItemSearcher.searchAndPickup(gameMap, player)) return;
+            if (throwableSearcher.searchAndPickup(gameMap, player)) return;
 
-            // 5. Nếu không phá được rương → di chuyển tới gần
-            chestAndEggBreaker.moveToChestOrEgg();
-
-            // 6. Nhặt các loại item theo thứ tự ưu tiên
-            armorSearcher.searchAndPickup(gameMap, player);
-            meleeSearcher.searchAndPickup(gameMap, player);
-            healingItemSearcher.searchAndPickup(gameMap, player);
-            throwableSearcher.searchAndPickup(gameMap, player);
-
-            // 7. Tấn công người chơi khác nếu gần
-            combatManager.engageEnemy();
+            // 6. Không còn gì để làm → đứng yên hoặc xử lý tùy chọn
+            System.out.println("Nothing urgent to do");
 
         } catch (Exception e) {
-            System.err.println("Critical error in MapUpdateListener: " + e.getMessage());
+            System.err.println("🔥 Critical error in MapUpdateListener: " + e.getMessage());
             e.printStackTrace();
         }
     }

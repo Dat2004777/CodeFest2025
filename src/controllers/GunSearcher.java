@@ -6,6 +6,7 @@ import jsclub.codefest.sdk.algorithm.PathUtils;
 import jsclub.codefest.sdk.model.GameMap;
 import jsclub.codefest.sdk.model.players.Player;
 import jsclub.codefest.sdk.model.weapon.Weapon;
+import utils.DodgeUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,7 +20,6 @@ public class GunSearcher {
 
     public void searchAndPickup(GameMap map, Player player) {
         List<Weapon> guns = map.getAllGun();
-
         if (guns.isEmpty()) {
             System.out.println("No gun available on the map.");
             return;
@@ -37,9 +37,9 @@ public class GunSearcher {
         }
 
         if (closestGun != null) {
-            boolean onSameCell = (player.getX() == closestGun.getX() && player.getY() == closestGun.getY());
+            boolean sameCell = (player.getX() == closestGun.getX() && player.getY() == closestGun.getY());
 
-            if (onSameCell) {
+            if (sameCell) {
                 try {
                     hero.pickupItem();
                     System.out.println("Picked up gun at: " + closestGun.getX() + "," + closestGun.getY());
@@ -49,8 +49,9 @@ public class GunSearcher {
             } else {
                 Node from = new Node(player.getX(), player.getY());
                 Node to = new Node(closestGun.getX(), closestGun.getY());
-                String path = PathUtils.getShortestPath(map, List.of(), from, to, false);
+                List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
 
+                String path = PathUtils.getShortestPath(map, avoid, from, to, false);
                 if (path != null && !path.isEmpty()) {
                     try {
                         hero.move(path);
@@ -58,6 +59,8 @@ public class GunSearcher {
                     } catch (IOException e) {
                         System.err.println("Failed to move to gun: " + e.getMessage());
                     }
+                } else {
+                    System.out.println("No path to gun due to obstacles or enemies.");
                 }
             }
         }

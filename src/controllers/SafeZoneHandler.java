@@ -5,10 +5,9 @@ import jsclub.codefest.sdk.base.Node;
 import jsclub.codefest.sdk.algorithm.PathUtils;
 import jsclub.codefest.sdk.model.GameMap;
 import jsclub.codefest.sdk.model.players.Player;
+import utils.DodgeUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 public class SafeZoneHandler {
@@ -28,28 +27,30 @@ public class SafeZoneHandler {
         );
     }
 
-    // Tìm và di chuyển đến điểm gần nhất trong safe zone
+    // Di chuyển vào vùng an toàn, né chướng ngại vật và enemy
     public void moveToSafeZone(Player player) {
         GameMap map = hero.getGameMap();
         int mapSize = map.getMapSize();
-        int safeZone = map.getSafeZone(); // bán kính vùng tối
+        int safeZone = map.getSafeZone();
 
         Node current = new Node(player.getX(), player.getY());
         Node center = PathUtils.getCenterOfMap(mapSize);
 
-        // Nếu trung tâm không nằm trong vùng sáng, không nên di chuyển
         if (!PathUtils.checkInsideSafeArea(center, safeZone, mapSize)) {
             System.out.println("⚠ Center is not inside safe zone!");
             return;
         }
 
-        // Tìm đường đi từ vị trí hiện tại đến trung tâm
+        // Lấy danh sách các vị trí không thể đi qua
+        List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
+
+        // Tìm đường đi đến center, tránh vật cản
         String path = PathUtils.getShortestPath(
                 map,
-                List.of(),  // không tránh chướng ngại thêm
+                avoid,
                 current,
                 center,
-                true // Chỉ cho phép di chuyển qua vùng sáng
+                true // chỉ đi trong vùng sáng
         );
 
         if (path != null && !path.isEmpty()) {
@@ -60,8 +61,7 @@ public class SafeZoneHandler {
                 System.err.println("❌ Failed to move to center: " + e.getMessage());
             }
         } else {
-            System.out.println("⚠ No valid path to center inside safe zone found.");
+            System.out.println("⚠ No reachable path to safe zone center found.");
         }
     }
-
 }

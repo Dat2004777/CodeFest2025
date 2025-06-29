@@ -6,6 +6,7 @@ import jsclub.codefest.sdk.algorithm.PathUtils;
 import jsclub.codefest.sdk.model.GameMap;
 import jsclub.codefest.sdk.model.players.Player;
 import jsclub.codefest.sdk.model.weapon.Weapon;
+import utils.DodgeUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,9 +18,13 @@ public class ThrowableSearcher {
         this.hero = hero;
     }
 
-    public void searchAndPickup(GameMap map, Player player) {
+    /**
+     * Tìm throwable gần nhất và cố gắng nhặt nếu có thể.
+     * @return true nếu có hành động (di chuyển hoặc nhặt), false nếu không làm gì.
+     */
+    public boolean searchAndPickup(GameMap map, Player player) {
         List<Weapon> throwables = map.getAllThrowable();
-        if (throwables.isEmpty()) return;
+        if (throwables.isEmpty()) return false;
 
         Weapon closest = null;
         int minDist = Integer.MAX_VALUE;
@@ -33,30 +38,36 @@ public class ThrowableSearcher {
         }
 
         if (closest != null) {
-            if (isAdjacent(player, closest)) {
+            boolean sameCell = (player.getX() == closest.getX() && player.getY() == closest.getY());
+
+            if (sameCell) {
                 try {
                     hero.pickupItem();
-                } catch (IOException ignored) {}
+                    System.out.println("✅ Picked up throwable at: " + closest.getX() + "," + closest.getY());
+                    return true;
+                } catch (IOException e) {
+                    System.err.println("❌ Failed to pickup throwable: " + e.getMessage());
+                }
             } else {
-                moveTo(player, closest.getX(), closest.getY(), map);
+                Node from = new Node(player.getX(), player.getY());
+                Node to = new Node(closest.getX(), closest.getY());
+                List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
+
+                String path = PathUtils.getShortestPath(map, avoid, from, to, false);
+                if (path != null && !path.isEmpty()) {
+                    try {
+                        hero.move(path);
+                        System.out.println("🚶 Moving to throwable: " + path);
+                        return true;
+                    } catch (IOException e) {
+                        System.err.println("❌ Failed to move to throwable: " + e.getMessage());
+                    }
+                } else {
+                    System.out.println("⚠ No path to throwable due to obstacles.");
+                }
             }
         }
-    }
 
-    private boolean isAdjacent(Player player, Weapon item) {
-        int dx = Math.abs(player.getX() - item.getX());
-        int dy = Math.abs(player.getY() - item.getY());
-        return dx + dy == 1;
-    }
-
-    private void moveTo(Player player, int tx, int ty, GameMap map) {
-        Node from = new Node(player.getX(), player.getY());
-        Node to = new Node(tx, ty);
-        String path = PathUtils.getShortestPath(map, List.of(), from, to, false);
-        if (path != null && !path.isEmpty()) {
-            try {
-                hero.move(path);
-            } catch (IOException ignored) {}
-        }
+        return false;
     }
 }

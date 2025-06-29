@@ -6,6 +6,7 @@ import jsclub.codefest.sdk.algorithm.PathUtils;
 import jsclub.codefest.sdk.model.GameMap;
 import jsclub.codefest.sdk.model.equipments.Armor;
 import jsclub.codefest.sdk.model.players.Player;
+import utils.DodgeUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,47 +18,56 @@ public class ArmorSearcher {
         this.hero = hero;
     }
 
-    public void searchAndPickup(GameMap map, Player player) {
+    public boolean searchAndPickup(GameMap map, Player player) {
         List<Armor> armors = map.getListArmors();
-
-        if (armors.isEmpty()) return;
+        if (armors.isEmpty()) return false;
 
         Armor closest = null;
         int minDist = Integer.MAX_VALUE;
 
-        for (Armor a : armors) {
-            int dist = Math.abs(a.getX() - player.getX()) + Math.abs(a.getY() - player.getY());
+        for (Armor armor : armors) {
+            int dist = Math.abs(armor.getX() - player.getX()) + Math.abs(armor.getY() - player.getY());
             if (dist < minDist) {
                 minDist = dist;
-                closest = a;
+                closest = armor;
             }
         }
 
         if (closest != null) {
-            if (isAdjacent(player, closest)) {
+            boolean sameCell = (player.getX() == closest.getX() && player.getY() == closest.getY());
+            if (sameCell) {
                 try {
                     hero.pickupItem();
-                } catch (IOException ignored) {}
+                    System.out.println("Picked up armor at: " + closest.getX() + "," + closest.getY());
+                    return true;
+                } catch (IOException e) {
+                    System.err.println("Failed to pickup armor: " + e.getMessage());
+                }
             } else {
-                moveTo(player, closest.getX(), closest.getY(), map);
+                return moveTo(player, closest.getX(), closest.getY(), map);
             }
         }
+
+        return false;
     }
 
-    private boolean isAdjacent(Player player, Armor armor) {
-        int dx = Math.abs(player.getX() - armor.getX());
-        int dy = Math.abs(player.getY() - armor.getY());
-        return dx + dy == 1;
-    }
-
-    private void moveTo(Player player, int tx, int ty, GameMap map) {
+    private boolean moveTo(Player player, int tx, int ty, GameMap map) {
         Node from = new Node(player.getX(), player.getY());
         Node to = new Node(tx, ty);
-        String path = PathUtils.getShortestPath(map, List.of(), from, to, false);
+        List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
+
+        String path = PathUtils.getShortestPath(map, avoid, from, to, false);
         if (path != null && !path.isEmpty()) {
             try {
                 hero.move(path);
-            } catch (IOException ignored) {}
+                System.out.println("Moving to armor: " + path);
+                return true;
+            } catch (IOException e) {
+                System.err.println("Failed to move to armor: " + e.getMessage());
+            }
+        } else {
+            System.out.println("No path to armor due to obstacles.");
         }
+        return false;
     }
 }
