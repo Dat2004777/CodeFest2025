@@ -16,6 +16,8 @@ public class MapUpdateListener implements Emitter.Listener {
     private final HealingItemSearcher healingItemSearcher;
     private final ThrowableSearcher throwableSearcher;
     private final CombatManager combatManager;
+    private final SpecialSearcher specialSearcher;
+    private final HealingManager healingManager;
 
     private boolean justBrokeChest = false;
 
@@ -29,6 +31,8 @@ public class MapUpdateListener implements Emitter.Listener {
         this.meleeSearcher = new MeleeSearcher(hero);
         this.healingItemSearcher = new HealingItemSearcher(hero);
         this.throwableSearcher = new ThrowableSearcher(hero);
+        this.specialSearcher = new SpecialSearcher(hero);
+        this.healingManager = new HealingManager(hero);
     }
 
     @Override
@@ -52,12 +56,35 @@ public class MapUpdateListener implements Emitter.Listener {
                 return;
             }
 
+            // hồi máu
+            if (healingManager.tryToHeal()) {
+                return;
+            }
+
             // 2. Nhặt súng nếu chưa có
             if (hero.getInventory().getGun() == null) {
                 System.out.println("🔫 Searching for Gun");
                 gunSearcher.searchAndPickup(gameMap, player);
                 return;
             }
+
+            if (hero.getInventory().getArmor() == null)
+                armorSearcher.searchAndPickup(gameMap, player);
+
+//                if (hero.getInventory().getHelmet() == null)
+//                    armorSearcher.searchAndPickup(gameMap, player);
+
+            if (hero.getInventory().getMelee() == null)
+                meleeSearcher.searchAndPickup(gameMap, player);
+
+//                if (hero.getInventory().getListHealingItem().size() < 4)
+            healingItemSearcher.searchAndPickup(gameMap, player);
+
+            if (hero.getInventory().getThrowable() == null)
+                throwableSearcher.searchAndPickup(gameMap, player);
+
+            if (hero.getInventory().getSpecial() == null)
+                specialSearcher.searchAndPickup(gameMap, player);
 
             // 3. Tính khoảng cách đến rương và enemy
             int distToChest = chestAndEggBreaker.getClosestChestDistance(gameMap, player);
@@ -70,11 +97,6 @@ public class MapUpdateListener implements Emitter.Listener {
                     justBrokeChest = true;
                     return;
                 }
-
-                if (armorSearcher.searchAndPickup(gameMap, player)) return;
-                if (meleeSearcher.searchAndPickup(gameMap, player)) return;
-                if (healingItemSearcher.searchAndPickup(gameMap, player)) return;
-                if (throwableSearcher.searchAndPickup(gameMap, player)) return;
 
                 if (justBrokeChest) {
                     System.out.println("⏳ Waiting 1 turn after chest break");
