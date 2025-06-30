@@ -19,15 +19,18 @@ public class ThrowableSearcher {
     }
 
     /**
-     * Tìm throwable gần nhất trong vùng an toàn và cố gắng nhặt nếu có thể.
-     * @return true nếu có hành động (di chuyển hoặc nhặt), false nếu không làm gì.
+     * Tìm throwable gần nhất trong SafeZone và cố gắng nhặt nếu có thể.
+     * @return true nếu có hành động nhặt hoặc di chuyển.
      */
     public boolean searchAndPickup(GameMap map, Player player) {
         List<Weapon> throwables = map.getAllThrowable();
-        if (throwables.isEmpty()) return false;
+        if (throwables.isEmpty()) {
+            System.out.println("🎯 No throwable found on map.");
+            return false;
+        }
 
-        int mapSize = map.getMapSize();
         int safeZone = map.getSafeZone();
+        int mapSize = map.getMapSize();
 
         Weapon closest = null;
         int minDist = Integer.MAX_VALUE;
@@ -35,7 +38,6 @@ public class ThrowableSearcher {
         for (Weapon t : throwables) {
             Node node = new Node(t.getX(), t.getY());
 
-            // Bỏ qua throwable ngoài safe zone
             if (!PathUtils.checkInsideSafeArea(node, safeZone, mapSize)) continue;
 
             int dist = Math.abs(t.getX() - player.getX()) + Math.abs(t.getY() - player.getY());
@@ -45,43 +47,52 @@ public class ThrowableSearcher {
             }
         }
 
-        if (closest != null) {
-            boolean sameCell = (player.getX() == closest.getX() && player.getY() == closest.getY());
+        if (closest == null) {
+            System.out.println("⚠️ No throwable in SafeZone.");
+            return false;
+        }
 
-            if (sameCell) {
+        if (player.getX() == closest.getX() && player.getY() == closest.getY()) {
+            try {
+                hero.pickupItem();
+                System.out.println("✅ Picked up throwable at: " + closest.getX() + "," + closest.getY());
+                return true;
+            } catch (IOException e) {
+                System.err.println("❌ Failed to pickup throwable: " + e.getMessage());
+            }
+        } else {
+            Node from = new Node(player.getX(), player.getY());
+            Node to = new Node(closest.getX(), closest.getY());
+            List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
+
+            String path = PathUtils.getShortestPath(map, avoid, from, to, false);
+            if (path != null && !path.isEmpty()) {
                 try {
-                    hero.pickupItem();
-                    System.out.println("✅ Picked up throwable at: " + closest.getX() + "," + closest.getY());
+                    hero.move(path);
+                    System.out.println("➡️ Moving to throwable at (" + to.getX() + "," + to.getY() + "): " + path);
                     return true;
                 } catch (IOException e) {
-                    System.err.println("❌ Failed to pickup throwable: " + e.getMessage());
+                    System.err.println("❌ Failed to move to throwable: " + e.getMessage());
                 }
             } else {
-                return moveTo(player, closest.getX(), closest.getY(), map);
+                System.out.println("🚫 No path to throwable due to obstacles.");
             }
         }
 
         return false;
     }
 
-    private boolean moveTo(Player player, int tx, int ty, GameMap map) {
-        Node from = new Node(player.getX(), player.getY());
-        Node to = new Node(tx, ty);
-        List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
+    /**
+     * Tính khoảng cách ngắn nhất đến throwable trong safezone.
+     */
+    public int getClosestThrowableDistance(GameMap map, Player player) {
+        int safeZone = map.getSafeZone();
+        int mapSize = map.getMapSize();
 
-        String path = PathUtils.getShortestPath(map, avoid, from, to, false);
-        if (path != null && !path.isEmpty()) {
-            try {
-                hero.move(path);
-                System.out.println("🚶 Moving to throwable: " + path);
-                return true;
-            } catch (IOException e) {
-                System.err.println("❌ Failed to move to throwable: " + e.getMessage());
-            }
-        } else {
-            System.out.println("⚠ No path to throwable due to obstacles.");
-        }
-
-        return false;
+        return map.getAllThrowable().stream()
+                .filter(t -> PathUtils.checkInsideSafeArea(new Node(t.getX(), t.getY()), safeZone, mapSize))
+                .mapToInt(t -> Math.abs(t.getX() - player.getX()) + Math.abs(t.getY() - player.getY()))
+                .min()
+                .orElse(Integer.MAX_VALUE);
     }
 }

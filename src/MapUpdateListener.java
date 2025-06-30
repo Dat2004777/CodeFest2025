@@ -1,5 +1,6 @@
 import controllers.*;
 
+import controllers.ArmorSearcher;
 import io.socket.emitter.Emitter;
 import jsclub.codefest.sdk.Hero;
 import jsclub.codefest.sdk.model.GameMap;
@@ -70,9 +71,15 @@ public class MapUpdateListener implements Emitter.Listener {
                     return;
                 }
 
+                if (armorSearcher.searchAndPickup(gameMap, player)) return;
+                if (meleeSearcher.searchAndPickup(gameMap, player)) return;
+                if (healingItemSearcher.searchAndPickup(gameMap, player)) return;
+                if (throwableSearcher.searchAndPickup(gameMap, player)) return;
+
                 if (justBrokeChest) {
                     System.out.println("⏳ Waiting 1 turn after chest break");
                     justBrokeChest = false;
+                    // 5. Nếu không có hành động chính nào → nhặt item
                     return;
                 }
 
@@ -87,12 +94,6 @@ public class MapUpdateListener implements Emitter.Listener {
                     return;
                 }
             }
-
-            // 5. Nếu không có hành động chính nào → nhặt item
-            if (armorSearcher.searchAndPickup(gameMap, player)) return;
-            if (meleeSearcher.searchAndPickup(gameMap, player)) return;
-            if (healingItemSearcher.searchAndPickup(gameMap, player)) return;
-            if (throwableSearcher.searchAndPickup(gameMap, player)) return;
 
             // 6. Không còn gì để làm → đứng yên hoặc xử lý tùy chọn
             System.out.println("Nothing urgent to do");

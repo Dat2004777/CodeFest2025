@@ -42,7 +42,7 @@ public class CombatManager {
             int dx = Math.abs(p.getX() - self.getX());
             int dy = Math.abs(p.getY() - self.getY());
 
-            if (dx + dy == 1 && hero.getInventory().getMelee() != null) {
+            if (dx + dy == 1) {
                 String dir = getDirection(self.getX(), self.getY(), p.getX(), p.getY());
                 if (!dir.isEmpty()) {
                     try {
@@ -56,7 +56,7 @@ public class CombatManager {
             }
 
             if (hero.getInventory().getGun() != null &&
-                    ((dx == 0 && dy > 1 && dy <= 3) || (dy == 0 && dx > 1 && dx <= 3))) {
+                    ((dx == 0 && dy > 1 && dy <= 2) || (dy == 0 && dx > 1 && dx <= 2))) {
                 String dir = getDirection(self.getX(), self.getY(), p.getX(), p.getY());
                 if (!dir.isEmpty()) {
                     try {

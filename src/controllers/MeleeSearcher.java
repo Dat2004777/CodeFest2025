@@ -18,64 +18,75 @@ public class MeleeSearcher {
         this.hero = hero;
     }
 
+    /**
+     * Tìm kiếm và nhặt vũ khí cận chiến gần nhất trong vùng an toàn.
+     * @return true nếu đã thực hiện hành động (nhặt hoặc di chuyển), false nếu không làm gì.
+     */
     public boolean searchAndPickup(GameMap map, Player player) {
         List<Weapon> melees = map.getAllMelee();
-        if (melees.isEmpty()) return false;
+        if (melees.isEmpty()) {
+            System.out.println("⚠️ No melee weapon found.");
+            return false;
+        }
 
-        int mapSize = map.getMapSize();
-        int safeZone = map.getSafeZone();
-
-        Weapon closest = null;
+        Weapon closestMelee = null;
         int minDist = Integer.MAX_VALUE;
 
-        for (Weapon m : melees) {
-            Node node = new Node(m.getX(), m.getY());
+        for (Weapon melee : melees) {
+            Node node = new Node(melee.getX(), melee.getY());
 
-            // Chỉ xét melee trong vùng an toàn
-            if (!PathUtils.checkInsideSafeArea(node, safeZone, mapSize)) continue;
+            // ❗ Chỉ xét melee nằm trong vùng an toàn
+            if (!PathUtils.checkInsideSafeArea(node, map.getSafeZone(), map.getMapSize())) continue;
 
-            int dist = Math.abs(m.getX() - player.getX()) + Math.abs(m.getY() - player.getY());
+            int dist = Math.abs(melee.getX() - player.getX()) + Math.abs(melee.getY() - player.getY());
             if (dist < minDist) {
                 minDist = dist;
-                closest = m;
+                closestMelee = melee;
             }
         }
 
-        if (closest != null) {
-            boolean sameCell = (player.getX() == closest.getX() && player.getY() == closest.getY());
+        if (closestMelee != null) {
+            boolean sameCell = (player.getX() == closestMelee.getX() && player.getY() == closestMelee.getY());
+
             if (sameCell) {
                 try {
                     hero.pickupItem();
-                    System.out.println("🗡️ Picked up melee at: " + closest.getX() + "," + closest.getY());
+                    System.out.println("🗡️ Picked up melee weapon at: " + closestMelee.getX() + "," + closestMelee.getY());
                     return true;
                 } catch (IOException e) {
-                    System.err.println("❌ Failed to pickup melee: " + e.getMessage());
+                    System.err.println("❌ Failed to pickup melee weapon: " + e.getMessage());
                 }
             } else {
-                return moveTo(player, closest.getX(), closest.getY(), map);
+                Node from = new Node(player.getX(), player.getY());
+                Node to = new Node(closestMelee.getX(), closestMelee.getY());
+                List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
+
+                String path = PathUtils.getShortestPath(map, avoid, from, to, false);
+                if (path != null && !path.isEmpty()) {
+                    try {
+                        hero.move(path);
+                        System.out.println("➡️ Moving to melee weapon: " + path);
+                        return true;
+                    } catch (IOException e) {
+                        System.err.println("❌ Failed to move to melee weapon: " + e.getMessage());
+                    }
+                } else {
+                    System.out.println("🚫 No path to melee weapon due to obstacles or enemies.");
+                }
             }
         }
 
         return false;
     }
 
-    private boolean moveTo(Player player, int tx, int ty, GameMap map) {
-        Node from = new Node(player.getX(), player.getY());
-        Node to = new Node(tx, ty);
-        List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
-
-        String path = PathUtils.getShortestPath(map, avoid, from, to, false);
-        if (path != null && !path.isEmpty()) {
-            try {
-                hero.move(path);
-                System.out.println("➡️ Moving to melee: " + path);
-                return true;
-            } catch (IOException e) {
-                System.err.println("❌ Failed to move to melee: " + e.getMessage());
-            }
-        } else {
-            System.out.println("⚠️ No path to melee due to obstacles.");
-        }
-        return false;
+    /**
+     * Tính khoảng cách Manhattan đến vũ khí cận chiến gần nhất (chỉ trong safezone).
+     */
+    public int getClosestMeleeDistance(GameMap map, Player player) {
+        return map.getAllMelee().stream()
+                .filter(w -> PathUtils.checkInsideSafeArea(new Node(w.getX(), w.getY()), map.getSafeZone(), map.getMapSize()))
+                .mapToInt(w -> Math.abs(w.getX() - player.getX()) + Math.abs(w.getY() - player.getY()))
+                .min()
+                .orElse(Integer.MAX_VALUE);
     }
 }
