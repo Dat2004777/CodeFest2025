@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class Bot3 {
     private static final String SERVER_URL = "https://cf25-server.jsclub.dev";
-    private static final String GAME_ID = "152446";
+    private static final String GAME_ID = "127315";
     private static final String PLAYER_NAME = "NguyenDatJ";
     private static final String SECRET_KEY = "sk-PhYI7GgDRherTCyTKuVmVg:1VT8azjKEj3iNHSxwyZN0Z58VGMJGFFNalWC025n4wN-5GMkpI8WboiuVLueleUzEjwNHfEyUN7QEmlQM6jNKg";
 

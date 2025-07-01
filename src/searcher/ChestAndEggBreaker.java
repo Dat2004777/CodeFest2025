@@ -1,4 +1,4 @@
-package controllers;
+package searcher;
 
 import jsclub.codefest.sdk.Hero;
 import jsclub.codefest.sdk.base.Node;

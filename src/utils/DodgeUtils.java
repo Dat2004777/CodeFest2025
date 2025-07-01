@@ -28,7 +28,8 @@ public class DodgeUtils {
             String id = obs.getId().toUpperCase();
             if (id.contains("WALL") || id.contains("ROCK") || id.contains("STATUE")
                     || id.contains("BIG") || id.contains("SMALL") || id.contains("BLOCK")
-                    || id.contains("TRAP")) {
+                    || id.contains("TRAP") || id.contains("BANANA_PEEL") || id.contains("DRAGON_EGG")
+                    || id.contains("CHEST")) {
                 blocked.add(new Node(obs.getX(), obs.getY()));
             }
         }

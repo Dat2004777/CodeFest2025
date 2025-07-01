@@ -1,38 +1,42 @@
-import controllers.*;
+import managers.*;
 
-import controllers.ArmorSearcher;
 import io.socket.emitter.Emitter;
 import jsclub.codefest.sdk.Hero;
 import jsclub.codefest.sdk.model.GameMap;
 import jsclub.codefest.sdk.model.players.Player;
+import managers.combat.weapon.*;
+import searcher.ChestAndEggBreaker;
+import searcher.items.*;
+
+import java.util.Comparator;
+import java.util.List;
 
 public class MapUpdateListener implements Emitter.Listener {
     private final Hero hero;
-    private final SafeZoneHandler safeZoneHandler;
-    private final GunSearcher gunSearcher;
-    private final ChestAndEggBreaker chestAndEggBreaker;
     private final ArmorSearcher armorSearcher;
-    private final MeleeSearcher meleeSearcher;
+    private final GunSearcher gunSearcher;
     private final HealingItemSearcher healingItemSearcher;
-    private final ThrowableSearcher throwableSearcher;
-    private final CombatManager combatManager;
+    private final MeleeSearcher meleeSearcher;
     private final SpecialSearcher specialSearcher;
-    private final HealingManager healingManager;
-
-    private boolean justBrokeChest = false;
+    private final ThrowableSearcher throwableSearcher;
+    private final ChestAndEggBreaker chestAndEggBreaker;
+    private final List<WeaponCombatStrategy> combatStrategies;
 
     public MapUpdateListener(Hero hero) {
         this.hero = hero;
-        this.safeZoneHandler = new SafeZoneHandler(hero);
-        this.gunSearcher = new GunSearcher(hero);
-        this.chestAndEggBreaker = new ChestAndEggBreaker(hero);
-        this.combatManager = new CombatManager(hero);
         this.armorSearcher = new ArmorSearcher(hero);
-        this.meleeSearcher = new MeleeSearcher(hero);
+        this.gunSearcher = new GunSearcher(hero);
         this.healingItemSearcher = new HealingItemSearcher(hero);
-        this.throwableSearcher = new ThrowableSearcher(hero);
+        this.meleeSearcher = new MeleeSearcher(hero);
         this.specialSearcher = new SpecialSearcher(hero);
-        this.healingManager = new HealingManager(hero);
+        this.throwableSearcher = new ThrowableSearcher(hero);
+        this.chestAndEggBreaker = new ChestAndEggBreaker(hero);
+        this.combatStrategies = List.of(
+                new MeleeCombatStrategy(hero),
+                new GunCombatStrategy(hero),
+                new ThrowableCombatStrategy(hero),
+                new SpecialWeaponCombatStrategy(hero)
+        );
     }
 
     @Override
@@ -49,76 +53,55 @@ public class MapUpdateListener implements Emitter.Listener {
                 return;
             }
 
-            // 1. Đi vào SafeZone nếu cần
-            if (!safeZoneHandler.isInSafeZone(player)) {
-                System.out.println("🔵 Moving to Safe Zone");
-                safeZoneHandler.moveToSafeZone(player);
-                return;
-            }
-
-            // hồi máu
-            if (healingManager.tryToHeal()) {
-                return;
-            }
-
-            // 2. Nhặt súng nếu chưa có
             if (hero.getInventory().getGun() == null) {
-                System.out.println("🔫 Searching for Gun");
-                gunSearcher.searchAndPickup(gameMap, player);
+                if (gunSearcher.searchAndPickup(gameMap, player)) return;
+            }
+
+            //Logic bắt đầu từ đây
+            if (chestAndEggBreaker.breakIfAdjacent()) {
                 return;
             }
 
-            if (hero.getInventory().getArmor() == null)
-                armorSearcher.searchAndPickup(gameMap, player);
-
-//                if (hero.getInventory().getHelmet() == null)
-//                    armorSearcher.searchAndPickup(gameMap, player);
-
-            if (hero.getInventory().getMelee() == null)
-                meleeSearcher.searchAndPickup(gameMap, player);
-
-//                if (hero.getInventory().getListHealingItem().size() < 4)
-            healingItemSearcher.searchAndPickup(gameMap, player);
-
-            if (hero.getInventory().getThrowable() == null)
-                throwableSearcher.searchAndPickup(gameMap, player);
-
-            if (hero.getInventory().getSpecial() == null)
-                specialSearcher.searchAndPickup(gameMap, player);
-
-            // 3. Tính khoảng cách đến rương và enemy
-            int distToChest = chestAndEggBreaker.getClosestChestDistance(gameMap, player);
-            int distToEnemy = combatManager.getClosestEnemyDistance(gameMap, player);
-
-            // 4. Ưu tiên mục tiêu gần hơn: rương hoặc địch
-            if (distToChest <= distToEnemy) {
-                if (chestAndEggBreaker.breakIfAdjacent()) {
-                    System.out.println("💥 Broke chest/egg nearby");
-                    justBrokeChest = true;
-                    return;
-                }
-
-                if (justBrokeChest) {
-                    System.out.println("⏳ Waiting 1 turn after chest break");
-                    justBrokeChest = false;
-                    // 5. Nếu không có hành động chính nào → nhặt item
-                    return;
-                }
-
-                if (chestAndEggBreaker.moveToChestOrEgg()) {
-                    System.out.println("📦 Moving toward chest/egg");
-                    return;
-                }
-
-            } else {
-                if (combatManager.engageEnemy()) {
-                    System.out.println("⚔️ Attacking nearby player");
-                    return;
-                }
+            if (hero.getInventory().getArmor() == null
+                    || hero.getInventory().getHelmet() == null) {
+                if (armorSearcher.searchAndPickup(gameMap, player)) return;
             }
 
-            // 6. Không còn gì để làm → đứng yên hoặc xử lý tùy chọn
-            System.out.println("Nothing urgent to do");
+            if (hero.getInventory().getMelee() == null && !"HAND".equalsIgnoreCase(hero.getInventory().getMelee().getId())) {
+                if (meleeSearcher.searchAndPickup(gameMap, player)) return;
+            }
+
+            if (hero.getInventory().getListHealingItem().size() < 4) {
+                if (healingItemSearcher.searchAndPickup(gameMap, player)) return;
+            }
+
+            if (hero.getInventory().getThrowable() == null) {
+                if (throwableSearcher.searchAndPickup(gameMap, player)) return;
+            }
+
+            if (hero.getInventory().getSpecial() == null) {
+                if (specialSearcher.searchAndPickup(gameMap, player)) return;
+            }
+
+            List<Player> enemies = gameMap.getOtherPlayerInfo();
+
+            Player self = player;
+            Player target = enemies.stream()
+                    .filter(e -> e.getHealth() > 0)
+                    .min(Comparator.comparingInt(e ->
+                            Math.abs(e.getX() - self.getX()) + Math.abs(e.getY() - self.getY())))
+                    .orElse(null);
+
+            if (target != null) {
+                for (WeaponCombatStrategy strategy : combatStrategies) {
+                    if (strategy.isUsable() && strategy.isInRange(self, target)) {
+                        if (strategy.attack(self, target)) {
+                            System.out.println("⚔️ Attacked enemy using strategy: " + strategy.getClass().getSimpleName());
+                            return;
+                        }
+                    }
+                }
+            }
 
         } catch (Exception e) {
             System.err.println("🔥 Critical error in MapUpdateListener: " + e.getMessage());
