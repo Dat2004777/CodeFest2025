@@ -6,7 +6,11 @@ import java.io.IOException;
 
 public class Main {
     private static final String SERVER_URL = "https://cf25-server.jsclub.dev";
+<<<<<<< Updated upstream
     private static final String GAME_ID = "127315";
+=======
+    private static final String GAME_ID = "1";
+>>>>>>> Stashed changes
     private static final String PLAYER_NAME = "NguyenDatJ";
     private static final String SECRET_KEY = "sk-SiultJO7Q3WSN5zJv2qNUw:0D6bZVr7QILv9G2Mhl1mPKGxiqWbzILb_LHIsnYHSvvIXeSg0xveUat7GV8kJ8PWPrSFSXe4FJhQrQHkP2RjOA";
 
