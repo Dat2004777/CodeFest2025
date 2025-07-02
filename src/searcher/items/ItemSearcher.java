@@ -77,10 +77,17 @@ public abstract class ItemSearcher<T extends Element> {
         int minDist = Integer.MAX_VALUE;
 
         for (T item : items) {
-            Node node = new Node(item.getX(), item.getY());
-            if (!PathUtils.checkInsideSafeArea(node, safeZone, mapSize)) continue;
+            int x = item.getX(), y = item.getY();
 
-            int dist = Math.abs(item.getX() - player.getX()) + Math.abs(item.getY() - player.getY());
+            // ❌ Bỏ qua item nếu bị người chơi khác đứng lên
+            if (isOccupiedByOtherPlayer(map, x, y)) continue;
+
+            if (isOverlappingItemTile(map, item.getX(), item.getY())) continue; // 🔥 Né ô có 2 item
+
+            // ✅ Chỉ xét item trong vùng an toàn
+            if (!PathUtils.checkInsideSafeArea(new Node(x, y), safeZone, mapSize)) continue;
+
+            int dist = Math.abs(x - player.getX()) + Math.abs(y - player.getY());
             if (dist < minDist) {
                 minDist = dist;
                 closest = item;
@@ -88,6 +95,29 @@ public abstract class ItemSearcher<T extends Element> {
         }
 
         return closest;
+    }
+
+    private boolean isOccupiedByOtherPlayer(GameMap map, int x, int y) {
+        for (Player p : map.getOtherPlayerInfo()) {
+            if (p.getX() == x && p.getY() == y && p.getHealth() > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isOverlappingItemTile(GameMap map, int x, int y) {
+        int count = 0;
+
+        // Đếm số lượng item nằm tại ô (x, y)
+        count += map.getAllGun().stream().filter(i -> i.getX() == x && i.getY() == y).count();
+        count += map.getAllThrowable().stream().filter(i -> i.getX() == x && i.getY() == y).count();
+        count += map.getAllSpecial().stream().filter(i -> i.getX() == x && i.getY() == y).count();
+        count += map.getListHealingItems().stream().filter(i -> i.getX() == x && i.getY() == y).count();
+        count += map.getListArmors().stream().filter(i -> i.getX() == x && i.getY() == y).count();
+
+        // Nếu có 2 item trở lên → là chồng lên nhau
+        return count >= 2;
     }
 
     protected abstract List<T> getCandidateItems(GameMap map);

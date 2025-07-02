@@ -17,7 +17,7 @@ public class MeleeCombatStrategy extends WeaponCombatStrategy {
     @Override
     public boolean isUsable() {
         Weapon melee = hero.getInventory().getMelee();
-        return melee != null && !"HAND".equalsIgnoreCase(melee.getId());
+        return melee != null; //&& !"HAND".equalsIgnoreCase(melee.getId())
     }
 
     @Override
@@ -34,7 +34,7 @@ public class MeleeCombatStrategy extends WeaponCombatStrategy {
         }
 
         // Nếu vũ khí có tầm xa: từ 1 đến 2 cells trên cùng hàng/cột
-        return ((dx == 0 && dy >= 1 && dy <= 2) || (dy == 0 && dx >= 1 && dx <= 2));
+        return ((dx == 0 && dy == 1) || (dy == 0 && dx == 1));
     }
 
     @Override

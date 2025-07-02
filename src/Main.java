@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import io.socket.emitter.Emitter;
 import jsclub.codefest.sdk.Hero;
 
@@ -7,11 +6,7 @@ import java.io.IOException;
 
 public class Main {
     private static final String SERVER_URL = "https://cf25-server.jsclub.dev";
-<<<<<<< Updated upstream
-    private static final String GAME_ID = "127315";
-=======
-    private static final String GAME_ID = "1";
->>>>>>> Stashed changes
+    private static final String GAME_ID = "191116";
     private static final String PLAYER_NAME = "NguyenDatJ";
     private static final String SECRET_KEY = "sk-SiultJO7Q3WSN5zJv2qNUw:0D6bZVr7QILv9G2Mhl1mPKGxiqWbzILb_LHIsnYHSvvIXeSg0xveUat7GV8kJ8PWPrSFSXe4FJhQrQHkP2RjOA";
 
@@ -23,26 +18,4 @@ public class Main {
         hero.setOnMapUpdate(onMapUpdate);
         hero.start(SERVER_URL);
     }
-=======
-import io.socket.emitter.Emitter;
-import jsclub.codefest.sdk.Hero;
-
-import java.io.IOException;
-
-
-public class Main {
-    private static final String SERVER_URL = "https://cf25-server.jsclub.dev";
-    private static final String GAME_ID = "163905";
-    private static final String PLAYER_NAME = "NguyenDatJ";
-    private static final String SECRET_KEY = "sk-SiultJO7Q3WSN5zJv2qNUw:0D6bZVr7QILv9G2Mhl1mPKGxiqWbzILb_LHIsnYHSvvIXeSg0xveUat7GV8kJ8PWPrSFSXe4FJhQrQHkP2RjOA";
-
-
-    public static void main(String[] args) throws IOException {
-        Hero hero = new Hero(GAME_ID, PLAYER_NAME, SECRET_KEY);
-        Emitter.Listener onMapUpdate = new MapUpdateListener(hero);
-
-        hero.setOnMapUpdate(onMapUpdate);
-        hero.start(SERVER_URL);
-    }
->>>>>>> Stashed changes
 }

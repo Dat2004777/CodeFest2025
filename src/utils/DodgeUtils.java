@@ -29,20 +29,26 @@ public class DodgeUtils {
             if (id.contains("WALL") || id.contains("ROCK") || id.contains("STATUE")
                     || id.contains("BIG") || id.contains("SMALL") || id.contains("BLOCK")
                     || id.contains("TRAP") || id.contains("BANANA_PEEL") || id.contains("DRAGON_EGG")
-                    || id.contains("CHEST")) {
+                    || id.contains("CHEST") || id.contains("HUNT_TRAP") || id.contains("INDESTRUCTIBLE")) {
                 blocked.add(new Node(obs.getX(), obs.getY()));
             }
         }
 
         // 3. Enemy: né enemy và cả vùng ảnh hưởng quanh enemy
+        int mapSize = map.getMapSize();
         for (Enemy e : map.getListEnemies()) {
             int ex = e.getX();
             int ey = e.getY();
-            blocked.add(new Node(ex, ey)); // chính nó
-            blocked.add(new Node(ex + 1, ey));
-            blocked.add(new Node(ex - 1, ey));
-            blocked.add(new Node(ex, ey + 1));
-            blocked.add(new Node(ex, ey - 1));
+
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    int nx = ex + dx;
+                    int ny = ey + dy;
+                    if (nx >= 0 && nx < mapSize && ny >= 0 && ny < mapSize) {
+                        blocked.add(new Node(nx, ny));
+                    }
+                }
+            }
         }
 
         return new ArrayList<>(blocked);
