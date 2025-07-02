@@ -9,26 +9,26 @@ import jsclub.codefest.sdk.model.players.Player;
 
 import java.util.List;
 
-public class ArmorSearcher extends ItemSearcher<Armor> {
+public class HelmetSearcher extends ItemSearcher<Armor> {
 
-    public ArmorSearcher(Hero hero) {
+    public HelmetSearcher(Hero hero) {
         super(hero);
     }
 
     @Override
     protected List<Armor> getCandidateItems(GameMap map) {
         return map.getListArmors().stream()
-                .filter(item -> map.getElementByIndex(item.getX(), item.getY()).getType() == ElementType.ARMOR)
+                .filter(item -> map.getElementByIndex(item.getX(), item.getY()).getType() == ElementType.HELMET)
                 .toList();
     }
 
     @Override
     protected String getItemName() {
-        return "armor";
+        return "helmet";
     }
 
-    public boolean isStandingOnArmor(GameMap map, Player player) {
+    public boolean isStandingOnHelmet(GameMap map, Player player) {
         Element item = map.getElementByIndex(player.getX(), player.getY());
-        return item.getType() == ElementType.ARMOR;
+        return item.getType() == ElementType.HELMET;
     }
 }

@@ -14,8 +14,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
+
 public class HealingManager {
     private final Hero hero;
+
     private static final Set<String> AUTO_HEAL_ITEMS = Set.of(
             "GOD_LEAF", "SPIRIT_TEAR", "MERMAID_TAIL", "PHOENIX_FEATHERS", "UNICORN_BLOOD"
     );
@@ -44,33 +46,33 @@ public class HealingManager {
         }
 
         // Không có item phù hợp → tìm đồng minh trong safe zone
-        List<Ally> allies = map.getListAllies();
-        if (allies.isEmpty()) {
-            System.out.println("🧍 No allies to follow.");
-            return false;
-        }
-
-        Ally closest = allies.stream()
-                .filter(a -> PathUtils.checkInsideSafeArea(new Node(a.getX(), a.getY()), map.getSafeZone(), map.getMapSize()))
-                .min(Comparator.comparingInt(a -> Math.abs(a.getX() - self.getX()) + Math.abs(a.getY() - self.getY())))
-                .orElse(null);
-
-        if (closest != null) {
-            Node from = new Node(self.getX(), self.getY());
-            Node to = new Node(closest.getX(), closest.getY());
-            List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
-
-            String path = PathUtils.getShortestPath(map, avoid, from, to, false);
-            if (path != null && !path.isEmpty()) {
-                try {
-                    hero.move(path);
-                    System.out.println("🤝 Moving toward ally for healing: " + path);
-                    return true;
-                } catch (IOException e) {
-                    System.err.println("❌ Failed to move to ally: " + e.getMessage());
-                }
-            }
-        }
+//        List<Ally> allies = map.getListAllies();
+//        if (allies.isEmpty()) {
+//            System.out.println("🧍 No allies to follow.");
+//            return false;
+//        }
+//
+//        Ally closest = allies.stream()
+//                .filter(a -> PathUtils.checkInsideSafeArea(new Node(a.getX(), a.getY()), map.getSafeZone(), map.getMapSize()))
+//                .min(Comparator.comparingInt(a -> Math.abs(a.getX() - self.getX()) + Math.abs(a.getY() - self.getY())))
+//                .orElse(null);
+//
+//        if (closest != null) {
+//            Node from = new Node(self.getX(), self.getY());
+//            Node to = new Node(closest.getX(), closest.getY());
+//            List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
+//
+//            String path = PathUtils.getShortestPath(map, avoid, from, to, false);
+//            if (path != null && !path.isEmpty()) {
+//                try {
+//                    hero.move(path);
+//                    System.out.println("🤝 Moving toward ally for healing: " + path);
+//                    return true;
+//                } catch (IOException e) {
+//                    System.err.println("❌ Failed to move to ally: " + e.getMessage());
+//                }
+//            }
+//        }
 
         return false;
     }

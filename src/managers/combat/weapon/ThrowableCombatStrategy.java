@@ -1,10 +1,13 @@
 package managers.combat.weapon;
 
 import jsclub.codefest.sdk.Hero;
+import jsclub.codefest.sdk.model.GameMap;
+import jsclub.codefest.sdk.model.obstacles.Obstacle;
 import jsclub.codefest.sdk.model.players.Player;
 import jsclub.codefest.sdk.model.weapon.Weapon;
 
 import java.io.IOException;
+import java.util.List;
 
 public class ThrowableCombatStrategy extends WeaponCombatStrategy {
 
@@ -27,7 +30,9 @@ public class ThrowableCombatStrategy extends WeaponCombatStrategy {
 
         int range = extractThrowableRange(throwable);
 
-        return ((dx == 0 && dy >= 1 && dy <= range) || (dy == 0 && dx >= 1 && dx <= range));
+        boolean aligned = (dx == 0 && dy >= 1 && dy <= range) || (dy == 0 && dx >= 1 && dx <= range);
+
+        return aligned && isPathClear(self, target);
     }
 
     @Override
@@ -38,9 +43,9 @@ public class ThrowableCombatStrategy extends WeaponCombatStrategy {
         String dir = getDirection(self, target);
         int range = extractThrowableRange(throwable);
 
-        if (!dir.isEmpty()) {
+        if (!dir.isEmpty() && isPathClear(self, target)) {
             try {
-                hero.throwItem(dir, range); // Cần truyền cả direction và khoảng cách
+                hero.throwItem(dir, range);
                 System.out.println("🧨 Throwing " + throwable.getId() + " at: " + dir + " (range: " + range + ")");
                 return true;
             } catch (IOException e) {
@@ -65,7 +70,49 @@ public class ThrowableCombatStrategy extends WeaponCombatStrategy {
             case "METEORITE_FRAGMENT":
             case "CRYSTAL":
                 return 6;
-            default: return 4; // fallback
+            default: return 4;
         }
+    }
+
+    private boolean isPathClear(Player from, Player to) {
+        GameMap map = hero.getGameMap();
+        List<Obstacle> obstacles = map.getListObstacles();
+
+        int x1 = from.getX();
+        int y1 = from.getY();
+        int x2 = to.getX();
+        int y2 = to.getY();
+
+        if (x1 == x2) {
+            // Ném theo chiều dọc
+            int start = Math.min(y1, y2) + 1;
+            int end = Math.max(y1, y2);
+            for (int y = start; y < end; y++) {
+                if (isObstacleAt(x1, y, obstacles)) return false;
+            }
+        } else if (y1 == y2) {
+            // Ném theo chiều ngang
+            int start = Math.min(x1, x2) + 1;
+            int end = Math.max(x1, x2);
+            for (int x = start; x < end; x++) {
+                if (isObstacleAt(x, y1, obstacles)) return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean isObstacleAt(int x, int y, List<Obstacle> obstacles) {
+        for (Obstacle o : obstacles) {
+            if (o.getX() == x && o.getY() == y) {
+                String id = o.getId().toUpperCase();
+                if (id.contains("WALL") || id.contains("ROCK") || id.contains("BLOCK") || id.contains("STATUE")
+                        || id.contains("TRAP") || id.contains("INDESTRUCTIBLE") || id.contains("CHEST")
+                        || id.contains("DRAGON_EGG")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

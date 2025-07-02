@@ -23,7 +23,7 @@ public class SpecialItemManager {
 
             try {
                 // Sử dụng nếu máu cực thấp
-                if (id.equals("ELIXIR_OF_LIFE") && self.getHealth() <= 30) {
+                if (id.equals("ELIXIR_OF_LIFE") && self.getHealth() <= 40) {
                     hero.useItem(item.getId());
                     System.out.println("🧬 Used ELIXIR_OF_LIFE to trigger resurrection + immortality");
                     return true;
@@ -37,7 +37,7 @@ public class SpecialItemManager {
                 }
 
                 // Sử dụng để tàng hình – tấn công bất ngờ hoặc rút lui
-                if (id.equals("MAGIC") && self.getHealth() <= 50) {
+                if (id.equals("MAGIC") && self.getHealth() <= 40) {
                     hero.useItem(item.getId());
                     System.out.println("🪄 Used MAGIC for stealth");
                     return true;
