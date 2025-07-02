@@ -1,15 +1,23 @@
+import jsclub.codefest.sdk.algorithm.PathUtils;
+import jsclub.codefest.sdk.base.Node;
 import managers.*;
 
 import io.socket.emitter.Emitter;
 import jsclub.codefest.sdk.Hero;
 import jsclub.codefest.sdk.model.GameMap;
 import jsclub.codefest.sdk.model.players.Player;
+import managers.combat.CombatManager;
 import managers.combat.weapon.*;
+import managers.healing.HealingManager;
+import managers.healing.SpecialItemManager;
 import searcher.ChestAndEggBreaker;
 import searcher.items.*;
+import utils.DodgeUtils;
+import utils.EnemyUtils;
 
-import java.util.Comparator;
 import java.util.List;
+
+import static utils.EnemyUtils.getClosestEnemyDistance;
 
 public class MapUpdateListener implements Emitter.Listener {
     private final Hero hero;
@@ -21,6 +29,10 @@ public class MapUpdateListener implements Emitter.Listener {
     private final ThrowableSearcher throwableSearcher;
     private final ChestAndEggBreaker chestAndEggBreaker;
     private final List<WeaponCombatStrategy> combatStrategies;
+    private final HealingManager healingManager;
+    private final SpecialItemManager specialItemManager;
+    private final SafeZoneHandler safeZoneHandler;
+    private final CombatManager combatManager;
 
     public MapUpdateListener(Hero hero) {
         this.hero = hero;
@@ -37,6 +49,10 @@ public class MapUpdateListener implements Emitter.Listener {
                 new ThrowableCombatStrategy(hero),
                 new SpecialWeaponCombatStrategy(hero)
         );
+        this.healingManager = new HealingManager(hero);
+        this.specialItemManager = new SpecialItemManager(hero);
+        this.safeZoneHandler = new SafeZoneHandler(hero);
+        this.combatManager = new CombatManager(hero, combatStrategies);
     }
 
     @Override
@@ -53,55 +69,12 @@ public class MapUpdateListener implements Emitter.Listener {
                 return;
             }
 
-            if (hero.getInventory().getGun() == null) {
-                if (gunSearcher.searchAndPickup(gameMap, player)) return;
-            }
-
+            String standingItem = armorSearcher.isStandingOnArmorOrHelmet(gameMap, player);
+            int chestDist = chestAndEggBreaker.getClosestChestDistance(gameMap, player);
+            int enemyDist = getClosestEnemyDistance(gameMap, player);
+            float hp = player.getHealth();
             //Logic bắt đầu từ đây
-            if (chestAndEggBreaker.breakIfAdjacent()) {
-                return;
-            }
 
-            if (hero.getInventory().getArmor() == null
-                    || hero.getInventory().getHelmet() == null) {
-                if (armorSearcher.searchAndPickup(gameMap, player)) return;
-            }
-
-            if (hero.getInventory().getMelee() == null && !"HAND".equalsIgnoreCase(hero.getInventory().getMelee().getId())) {
-                if (meleeSearcher.searchAndPickup(gameMap, player)) return;
-            }
-
-            if (hero.getInventory().getListHealingItem().size() < 4) {
-                if (healingItemSearcher.searchAndPickup(gameMap, player)) return;
-            }
-
-            if (hero.getInventory().getThrowable() == null) {
-                if (throwableSearcher.searchAndPickup(gameMap, player)) return;
-            }
-
-            if (hero.getInventory().getSpecial() == null) {
-                if (specialSearcher.searchAndPickup(gameMap, player)) return;
-            }
-
-            List<Player> enemies = gameMap.getOtherPlayerInfo();
-
-            Player self = player;
-            Player target = enemies.stream()
-                    .filter(e -> e.getHealth() > 0)
-                    .min(Comparator.comparingInt(e ->
-                            Math.abs(e.getX() - self.getX()) + Math.abs(e.getY() - self.getY())))
-                    .orElse(null);
-
-            if (target != null) {
-                for (WeaponCombatStrategy strategy : combatStrategies) {
-                    if (strategy.isUsable() && strategy.isInRange(self, target)) {
-                        if (strategy.attack(self, target)) {
-                            System.out.println("⚔️ Attacked enemy using strategy: " + strategy.getClass().getSimpleName());
-                            return;
-                        }
-                    }
-                }
-            }
 
         } catch (Exception e) {
             System.err.println("🔥 Critical error in MapUpdateListener: " + e.getMessage());
