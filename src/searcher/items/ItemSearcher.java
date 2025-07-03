@@ -66,7 +66,7 @@ public abstract class ItemSearcher<T extends Element> {
         return Math.abs(closest.getX() - player.getX()) + Math.abs(closest.getY() - player.getY());
     }
 
-    private T findClosestItem(GameMap map, Player player) {
+    T findClosestItem(GameMap map, Player player) {
         List<T> items = getCandidateItems(map);
         if (items == null || items.isEmpty()) return null;
 
@@ -113,7 +113,7 @@ public abstract class ItemSearcher<T extends Element> {
         count += map.getAllGun().stream().filter(i -> i.getX() == x && i.getY() == y).count();
         count += map.getAllThrowable().stream().filter(i -> i.getX() == x && i.getY() == y).count();
         count += map.getAllSpecial().stream().filter(i -> i.getX() == x && i.getY() == y).count();
-        count += map.getListHealingItems().stream().filter(i -> i.getX() == x && i.getY() == y).count();
+        count += map.getListSupportItems().stream().filter(i -> i.getX() == x && i.getY() == y).count();
         count += map.getListArmors().stream().filter(i -> i.getX() == x && i.getY() == y).count();
 
         // Nếu có 2 item trở lên → là chồng lên nhau
