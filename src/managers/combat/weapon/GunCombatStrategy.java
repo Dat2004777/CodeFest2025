@@ -30,7 +30,7 @@ public class GunCombatStrategy extends WeaponCombatStrategy {
         int tx = target.getX();
         int ty = target.getY();
 
-        int range = extractGunRange(gun);
+        int range = gun.getRange()[1]; // ✅ dùng đúng range tầm xa theo SDK mới
 
         GameMap map = hero.getGameMap();
         List<Obstacle> obstacles = map.getListObstacles();
@@ -41,7 +41,6 @@ public class GunCombatStrategy extends WeaponCombatStrategy {
 
             int minY = Math.min(sy, ty);
             int maxY = Math.max(sy, ty);
-
             for (int y = minY + 1; y < maxY; y++) {
                 if (isObstacleAt(sx, y, obstacles)) return false;
             }
@@ -54,7 +53,6 @@ public class GunCombatStrategy extends WeaponCombatStrategy {
 
             int minX = Math.min(sx, tx);
             int maxX = Math.max(sx, tx);
-
             for (int x = minX + 1; x < maxX; x++) {
                 if (isObstacleAt(x, sy, obstacles)) return false;
             }
@@ -98,13 +96,4 @@ public class GunCombatStrategy extends WeaponCombatStrategy {
         return false;
     }
 
-    private int extractGunRange(Weapon gun) {
-        switch (gun.getId().toUpperCase()) {
-            case "SCEPTER": return 12;
-            case "CROSSBOW": return 5;
-            case "RUBBER_GUN": return 6;
-            case "SHOTGUN": return 2;
-            default: return 3;
-        }
-    }
 }

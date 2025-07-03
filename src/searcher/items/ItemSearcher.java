@@ -107,17 +107,17 @@ public abstract class ItemSearcher<T extends Element> {
     }
 
     private boolean isOverlappingItemTile(GameMap map, int x, int y) {
-        int count = 0;
+        long count = 0;
 
         // Đếm số lượng item nằm tại ô (x, y)
         count += map.getAllGun().stream().filter(i -> i.getX() == x && i.getY() == y).count();
         count += map.getAllThrowable().stream().filter(i -> i.getX() == x && i.getY() == y).count();
         count += map.getAllSpecial().stream().filter(i -> i.getX() == x && i.getY() == y).count();
-        count += map.getListHealingItems().stream().filter(i -> i.getX() == x && i.getY() == y).count();
+        count += map.getListSupportItems().stream().filter(i -> i.getX() == x && i.getY() == y).count();
         count += map.getListArmors().stream().filter(i -> i.getX() == x && i.getY() == y).count();
 
         // Nếu có 2 item trở lên → là chồng lên nhau
-        return count >= 2;
+        return count >= 2.0;
     }
 
     protected abstract List<T> getCandidateItems(GameMap map);

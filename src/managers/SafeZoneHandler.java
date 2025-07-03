@@ -17,49 +17,61 @@ public class SafeZoneHandler {
         this.hero = hero;
     }
 
-    // Kiểm tra nếu vị trí hiện tại nằm trong vùng an toàn (vùng sáng)
+    /**
+     * Kiểm tra nếu player đang ở trong vùng an toàn (vùng sáng).
+     */
     public boolean isInSafeZone(Player player) {
+        if (player == null) return false;
+
         GameMap map = hero.getGameMap();
+        Node current = new Node(player.getX(), player.getY());
+
         return PathUtils.checkInsideSafeArea(
-                new Node(player.getX(), player.getY()),
+                current,
                 map.getSafeZone(),
                 map.getMapSize()
         );
     }
 
-    // Di chuyển vào vùng an toàn (vùng sáng), né chướng ngại vật và enemy
+    /**
+     * Di chuyển về trung tâm vùng an toàn nếu đang ở ngoài.
+     */
     public void moveToSafeZone(Player player) {
+        if (player == null || player.getHealth() == null || player.getHealth() <= 0) {
+            System.out.println("⚠️ Invalid or dead player, skipping safe zone move.");
+            return;
+        }
+
         GameMap map = hero.getGameMap();
         int mapSize = map.getMapSize();
         int safeZone = map.getSafeZone();
 
         Node current = new Node(player.getX(), player.getY());
-        Node center = new Node(mapSize / 2, mapSize / 2);
 
-        // Nếu đang trong vùng an toàn thì không cần di chuyển
         if (PathUtils.checkInsideSafeArea(current, safeZone, mapSize)) {
             System.out.println("🟢 Already in safe zone.");
             return;
         }
 
-        // Nếu center không nằm trong vùng sáng thì tìm điểm gần center
+        Node center = new Node(mapSize / 2, mapSize / 2);
+
         if (!PathUtils.checkInsideSafeArea(center, safeZone, mapSize)) {
-            System.out.println("⚠ Center is not inside safe zone!");
+            System.out.println("⚠ Center is not inside safe zone — cannot use center as destination.");
             return;
         }
 
         List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
-        String path = PathUtils.getShortestPath(map, avoid, current, center, true); // chỉ trong vùng sáng
+        String path = PathUtils.getShortestPath(map, avoid, current, center, true); // chỉ di chuyển trong vùng sáng
 
         if (path != null && !path.isEmpty()) {
             try {
                 hero.move(path);
-                System.out.println("🛡️ Moving to safe zone: " + path);
+                System.out.println("🛡️ Moving to safe zone at center: " + path);
             } catch (IOException e) {
                 System.err.println("❌ Failed to move to safe zone: " + e.getMessage());
             }
         } else {
-            System.out.println("⚠ No path found to safe zone.");
+            System.out.println("⚠ No valid path to safe zone center found.");
         }
     }
 }

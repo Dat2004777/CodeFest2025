@@ -1,10 +1,11 @@
 package managers.healing;
 
 import jsclub.codefest.sdk.Hero;
-import jsclub.codefest.sdk.model.healing_items.HealingItem;
+import jsclub.codefest.sdk.model.support_items.SupportItem;
 import jsclub.codefest.sdk.model.players.Player;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SpecialItemManager {
@@ -16,44 +17,55 @@ public class SpecialItemManager {
 
     public boolean useSpecialItemsIfNeeded() {
         Player self = hero.getGameMap().getCurrentPlayer();
-        List<HealingItem> items = hero.getInventory().getListHealingItem();
+        Float hp = self.getHealth();
+        if (hp == null || hp <= 0) return false;
 
-        for (HealingItem item : items) {
+        List<SupportItem> inventoryItems = new ArrayList<>(hero.getInventory().getListSupportItem()); // tránh ConcurrentModificationException
+
+        for (SupportItem item : inventoryItems) {
             String id = item.getId().toUpperCase();
 
             try {
-                // Sử dụng nếu máu cực thấp
-                if (id.equals("ELIXIR_OF_LIFE") && self.getHealth() <= 40) {
-                    hero.useItem(item.getId());
-                    System.out.println("🧬 Used ELIXIR_OF_LIFE to trigger resurrection + immortality");
-                    return true;
-                }
+                switch (id) {
+                    case "ELIXIR_OF_LIFE":
+                        if (hp <= 40) {
+                            hero.useItem(item.getId());
+                            System.out.println("🧬 Used ELIXIR_OF_LIFE for resurrection + temporary immortality");
+                            return true;
+                        }
+                        break;
 
-                // Sử dụng nếu bị khống chế hoặc chuẩn bị combat gấp
-                if (id.equals("ELIXIR") && self.getHealth() <= 40) {
-                    hero.useItem(item.getId());
-                    System.out.println("🧪 Used ELIXIR for control immunity");
-                    return true;
-                }
+                    case "ELIXIR":
+                        if (hp <= 40) {
+                            hero.useItem(item.getId());
+                            System.out.println("🧪 Used ELIXIR for control immunity");
+                            return true;
+                        }
+                        break;
 
-                // Sử dụng để tàng hình – tấn công bất ngờ hoặc rút lui
-                if (id.equals("MAGIC") && self.getHealth() <= 40) {
-                    hero.useItem(item.getId());
-                    System.out.println("🪄 Used MAGIC for stealth");
-                    return true;
-                }
+                    case "MAGIC":
+                        if (hp <= 40) {
+                            hero.useItem(item.getId());
+                            System.out.println("🪄 Used MAGIC for stealth");
+                            return true;
+                        }
+                        break;
 
-                // Sử dụng la bàn để gây choáng enemy gần nếu bị vây
-                if (id.equals("COMPASS")) {
-                    boolean surrounded = hero.getGameMap().getOtherPlayerInfo().stream()
-                            .anyMatch(p -> p.getHealth() > 0 &&
-                                    Math.abs(p.getX() - self.getX()) + Math.abs(p.getY() - self.getY()) <= 3);
+                    case "COMPASS":
+                        long nearbyEnemies = hero.getGameMap().getOtherPlayerInfo().stream()
+                                .filter(p -> p.getHealth() != null && p.getHealth() > 0)
+                                .filter(p -> Math.abs(p.getX() - self.getX()) + Math.abs(p.getY() - self.getY()) <= 3)
+                                .count();
 
-                    if (surrounded) {
-                        hero.useItem(item.getId());
-                        System.out.println("🧭 Used COMPASS to stun nearby enemies");
-                        return true;
-                    }
+                        if (nearbyEnemies >= 2) {
+                            hero.useItem(item.getId());
+                            System.out.println("🧭 Used COMPASS to stun " + nearbyEnemies + " nearby enemies");
+                            return true;
+                        }
+                        break;
+
+                    default:
+                        break;
                 }
 
             } catch (IOException e) {

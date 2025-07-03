@@ -12,7 +12,6 @@ import searcher.ChestAndEggBreaker;
 import searcher.items.*;
 import utils.EnemyUtils;
 
-import java.util.Comparator;
 import java.util.List;
 
 public class MapUpdateListener implements Emitter.Listener {
@@ -25,12 +24,10 @@ public class MapUpdateListener implements Emitter.Listener {
     private final ThrowableSearcher throwableSearcher;
     private final ChestAndEggBreaker chestAndEggBreaker;
     private final List<WeaponCombatStrategy> combatStrategies;
-    private final EnemyUtils enemyUtils;
     private final CombatManager combatManager;
     private final HealingManager healingManager;
     private final SpecialItemManager specialItemManager;
     private final SafeZoneHandler safeZoneHandler;
-    private final RevokeItem revokeItem;
     private final HelmetSearcher helmetSearcher;
 
     public MapUpdateListener(Hero hero) {
@@ -48,12 +45,10 @@ public class MapUpdateListener implements Emitter.Listener {
                 new ThrowableCombatStrategy(hero),
                 new SpecialWeaponCombatStrategy(hero)
         );
-        this.enemyUtils = new EnemyUtils();
         this.combatManager = new CombatManager(hero, combatStrategies);
         this.healingManager = new HealingManager(hero);
         this.specialItemManager = new SpecialItemManager(hero);
         this.safeZoneHandler = new SafeZoneHandler(hero);
-        this.revokeItem = new RevokeItem(hero);
         this.helmetSearcher = new HelmetSearcher(hero);
     }
 
@@ -68,10 +63,12 @@ public class MapUpdateListener implements Emitter.Listener {
 
             System.out.println("Current Score: " + player.getScore());
 
-            if (player == null || player.getHealth() <= 0) {
+            if (player.getHealth() <= 0) {
                 System.out.println("Player is dead or data is not available.");
                 return;
             }
+
+            // nếu địch có súng và mình không có súng thì CHẠY
 
             int chestDist = chestAndEggBreaker.getClosestChestDistance(gameMap, player);
             int enemyDist = EnemyUtils.getClosestEnemyDistance(gameMap, player);
@@ -94,11 +91,12 @@ public class MapUpdateListener implements Emitter.Listener {
                 return;
             }
 
-            if (hero.getInventory().getListHealingItem().size() < 4) {
-                if (healingItemSearcher.searchAndPickup(gameMap, player)) {
-                    return;
-                }
-            }
+//            if (hero.getInventory().getListSupportItem().size() < 4) {
+//                System.out.println(hero.getInventory().getListSupportItem().size());
+//                if (healingItemSearcher.searchAndPickup(gameMap, player)) {
+//                    return;
+//                }
+//            }
 
             // Armor
             if (hero.getInventory().getArmor() == null) {
@@ -140,11 +138,11 @@ public class MapUpdateListener implements Emitter.Listener {
             if (chestDist < enemyDist) {
                 if (chestAndEggBreaker.breakIfAdjacent()) return;
 
-                if (hero.getInventory().getListHealingItem().size() < 4) {
-                    if (healingItemSearcher.searchAndPickup(gameMap, player)) {
-                        return;
-                    }
-                }
+//                if (hero.getInventory().getListSupportItem().size() < 4) {
+//                    if (healingItemSearcher.searchAndPickup(gameMap, player)) {
+//                        return;
+//                    }
+//                }
 
                 // Armor
                 if (hero.getInventory().getArmor() == null) {
@@ -183,10 +181,15 @@ public class MapUpdateListener implements Emitter.Listener {
                     }
                 }
 
-                if (chestAndEggBreaker.moveToChestOrEgg()) return;
+                chestAndEggBreaker.moveToChestOrEgg();
             } else {
+                if (hp > 40 && hp <= 60) {
+                    if (healingManager.handleHealingIfNeeded()) return;
+                } else if (hp <= 40) {
+                    if (specialItemManager.useSpecialItemsIfNeeded()) return;
+                }
+
                 combatManager.handleCombatIfNeeded(gameMap, player);
-                return;
             }
 
         } catch (Exception e) {

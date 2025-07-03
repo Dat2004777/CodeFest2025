@@ -5,10 +5,8 @@ import jsclub.codefest.sdk.model.players.Player;
 import jsclub.codefest.sdk.model.weapon.Weapon;
 
 import java.io.IOException;
-import java.util.Set;
 
 public class MeleeCombatStrategy extends WeaponCombatStrategy {
-    private static final Set<String> CLOSE_RANGE_ONLY = Set.of("BONE");
 
     public MeleeCombatStrategy(Hero hero) {
         super(hero);
@@ -17,7 +15,7 @@ public class MeleeCombatStrategy extends WeaponCombatStrategy {
     @Override
     public boolean isUsable() {
         Weapon melee = hero.getInventory().getMelee();
-        return melee != null; //&& !"HAND".equalsIgnoreCase(melee.getId())
+        return melee != null;
     }
 
     @Override
@@ -25,16 +23,18 @@ public class MeleeCombatStrategy extends WeaponCombatStrategy {
         Weapon melee = hero.getInventory().getMelee();
         if (melee == null) return false;
 
-        int dx = Math.abs(self.getX() - target.getX());
-        int dy = Math.abs(self.getY() - target.getY());
+        int[] range = melee.getRange(); // SDK mới cung cấp range: [min, max]
+        int sx = self.getX(), sy = self.getY();
+        int tx = target.getX(), ty = target.getY();
+
+        int dx = Math.abs(sx - tx);
+        int dy = Math.abs(sy - ty);
+
+        // Chỉ xét nếu cùng hàng hoặc cùng cột
+        if (dx * dy != 0) return false;
+
         int dist = dx + dy;
-
-        if (CLOSE_RANGE_ONLY.contains(melee.getId())) {
-            return dist == 1;
-        }
-
-        // Nếu vũ khí có tầm xa: từ 1 đến 2 cells trên cùng hàng/cột
-        return ((dx == 0 && dy == 1) || (dy == 0 && dx == 1));
+        return dist >= range[0] && dist <= range[1];
     }
 
     @Override
