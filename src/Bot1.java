@@ -7,7 +7,11 @@ import java.io.IOException;
 public class Bot1 {
     private static final String SERVER_URL = "https://cf25-server.jsclub.dev";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     private static final String GAME_ID = "102471";
+=======
+    private static final String GAME_ID = "171534";
+>>>>>>> Stashed changes
 =======
     private static final String GAME_ID = "171534";
 >>>>>>> Stashed changes

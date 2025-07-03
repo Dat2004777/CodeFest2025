@@ -114,6 +114,7 @@ public class MapUpdateListener implements Emitter.Listener {
             }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 //            if (hero.getInventory().getListSupportItem().size() < 4) {
 //                System.out.println(hero.getInventory().getListSupportItem().size());
 //                if (healingItemSearcher.searchAndPickup(gameMap, player)) {
@@ -121,6 +122,8 @@ public class MapUpdateListener implements Emitter.Listener {
 //                }
 //            }
 =======
+=======
+>>>>>>> Stashed changes
             if (hero.getInventory().getListSupportItem().size() < 4) {
                 System.out.println("SUPPORT ITEM: Executed. ");
                 if (healingItemSearcher.searchAndPickup(gameMap, player)) {
@@ -133,7 +136,11 @@ public class MapUpdateListener implements Emitter.Listener {
             if (hero.getInventory().getArmor() == null) {
                 if (armorSearcher.isStandingOnArmor(gameMap, player)) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     System.out.println("GUN: Executed. ");
+=======
+                    System.out.println("ARMOR: Executed. ");
+>>>>>>> Stashed changes
 =======
                     System.out.println("ARMOR: Executed. ");
 >>>>>>> Stashed changes
@@ -179,12 +186,15 @@ public class MapUpdateListener implements Emitter.Listener {
                 if (chestAndEggBreaker.breakIfAdjacent()) return;
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 //                if (hero.getInventory().getListSupportItem().size() < 4) {
 //                    if (healingItemSearcher.searchAndPickup(gameMap, player)) {
 //                        return;
 //                    }
 //                }
 =======
+=======
+>>>>>>> Stashed changes
                 if (hero.getInventory().getListSupportItem().size() < 4) {
                     System.out.println("SUPPORT ITEM in Chest: Executed. ");
                     if (healingItemSearcher.searchAndPickup(gameMap, player)) {
@@ -244,6 +254,11 @@ public class MapUpdateListener implements Emitter.Listener {
                 }
 
                 combatManager.handleCombatIfNeeded(gameMap, player);
+            }
+
+            if (hero.getInventory().getGun() != null && hero.getInventory().getMelee() != null) {
+                if (gunSearcher.searchAndPickup(gameMap, player)) return;
+                if (meleeSearcher.searchAndPickup(gameMap, player)) return;
             }
 
             if (hero.getInventory().getGun() != null && hero.getInventory().getMelee() != null) {

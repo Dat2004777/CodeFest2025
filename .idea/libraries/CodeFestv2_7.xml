@@ -1,5 +1,9 @@
 <component name="libraryTable">
+<<<<<<<< Updated upstream:.idea/libraries/CodeFestv2_7.xml
   <library name="CodeFestv2.7">
+========
+  <library name="CodeFestv2.8">
+>>>>>>>> Stashed changes:.idea/libraries/CodeFestv2_8.xml
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../CodeFestv2.7.jar!/" />
     </CLASSES>
