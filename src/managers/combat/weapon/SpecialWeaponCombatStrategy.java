@@ -19,7 +19,7 @@ public class SpecialWeaponCombatStrategy extends WeaponCombatStrategy {
     @Override
     public boolean isUsable() {
         Weapon special = hero.getInventory().getSpecial();
-        return special != null && special.getUseCounts() > 0;
+        return special != null && special.getUseCount() > 0;
     }
 
     @Override
@@ -27,21 +27,22 @@ public class SpecialWeaponCombatStrategy extends WeaponCombatStrategy {
         Weapon special = hero.getInventory().getSpecial();
         if (special == null) return false;
 
-        String id = special.getId().toUpperCase(Locale.ROOT);
+        int[] range = special.getRange(); // SDK mới
         int dx = Math.abs(self.getX() - target.getX());
         int dy = Math.abs(self.getY() - target.getY());
-        int dist = dx + dy;
 
-        switch (id) {
-            case "ROPE":
-                return (dx == 0 || dy == 0) && dist == 6;
-            case "BELL":
-                return dx <= 2 && dy <= 2; // 5x5 square
-            case "SAHUR_BAT":
-                return dist == 1; // melee
-            default:
-                return false;
+        // Hỗ trợ tấn công nếu trên cùng hàng/cột (theo quy định các vũ khí đặc biệt)
+        if (dx * dy == 0) {
+            int dist = dx + dy;
+            return dist >= range[0] && dist <= range[1];
         }
+
+        // Trường hợp BELL có thể đánh AOE vuông (dx <= 2 && dy <= 2)
+        if ("BELL".equalsIgnoreCase(special.getId())) {
+            return dx <= range[0] && dy <= range[1];
+        }
+
+        return false;
     }
 
     @Override
@@ -53,23 +54,9 @@ public class SpecialWeaponCombatStrategy extends WeaponCombatStrategy {
         String dir = getDirection(self, target);
 
         try {
-            switch (id) {
-                case "ROPE":
-                    hero.useSpecial(dir);
-                    System.out.println("🪢 Using ROPE on " + dir);
-                    return true;
-                case "BELL":
-                    hero.useSpecial(dir); // AOE center
-                    System.out.println("🔔 Using BELL in area at " + dir);
-                    return true;
-                case "SAHUR_BAT":
-                    hero.useSpecial(dir); // melee
-                    System.out.println("🦇 Using SAHUR_BAT at " + dir);
-                    return true;
-                default:
-                    System.out.println("⚠️ Unknown special weapon: " + id);
-                    return false;
-            }
+            hero.useSpecial(dir);
+            System.out.println("✨ Using special weapon [" + id + "] towards: " + dir);
+            return true;
         } catch (IOException e) {
             System.err.println("❌ Failed to use special weapon " + id + ": " + e.getMessage());
             return false;
