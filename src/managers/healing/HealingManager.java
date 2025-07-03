@@ -6,7 +6,7 @@ import jsclub.codefest.sdk.base.Node;
 import jsclub.codefest.sdk.model.GameMap;
 import jsclub.codefest.sdk.model.npcs.Ally;
 import jsclub.codefest.sdk.model.players.Player;
-import jsclub.codefest.sdk.model.healing_items.HealingItem;
+import jsclub.codefest.sdk.model.support_items.SupportItem;
 import utils.DodgeUtils;
 
 import java.io.IOException;
@@ -31,8 +31,8 @@ public class HealingManager {
         Player self = map.getCurrentPlayer();
         float currentHP = self.getHealth();
 
-        List<HealingItem> items = hero.getInventory().getListHealingItem();
-        for (HealingItem item : items) {
+        List<SupportItem> items = hero.getInventory().getListSupportItem();
+        for (SupportItem item : items) {
             String id = item.getId();
             if (AUTO_HEAL_ITEMS.contains(id) && currentHP <= getThreshold(id)) {
                 try {

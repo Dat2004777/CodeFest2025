@@ -1,7 +1,7 @@
 package managers.healing;
 
 import jsclub.codefest.sdk.Hero;
-import jsclub.codefest.sdk.model.healing_items.HealingItem;
+import jsclub.codefest.sdk.model.support_items.SupportItem;
 import jsclub.codefest.sdk.model.players.Player;
 
 import java.io.IOException;
@@ -16,9 +16,9 @@ public class SpecialItemManager {
 
     public boolean useSpecialItemsIfNeeded() {
         Player self = hero.getGameMap().getCurrentPlayer();
-        List<HealingItem> items = hero.getInventory().getListHealingItem();
+        List<SupportItem> items = hero.getInventory().getListSupportItem();
 
-        for (HealingItem item : items) {
+        for (SupportItem item : items) {
             String id = item.getId().toUpperCase();
 
             try {
