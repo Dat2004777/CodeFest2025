@@ -113,37 +113,31 @@ public class MapUpdateListener implements Emitter.Listener {
                 return;
             }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+
 //            if (hero.getInventory().getListSupportItem().size() < 4) {
 //                System.out.println(hero.getInventory().getListSupportItem().size());
 //                if (healingItemSearcher.searchAndPickup(gameMap, player)) {
 //                    return;
 //                }
 //            }
-=======
-=======
->>>>>>> Stashed changes
+
             if (hero.getInventory().getListSupportItem().size() < 4) {
                 System.out.println("SUPPORT ITEM: Executed. ");
                 if (healingItemSearcher.searchAndPickup(gameMap, player)) {
                     return;
                 }
             }
->>>>>>> Stashed changes
 
             // Armor
             if (hero.getInventory().getArmor() == null) {
                 if (armorSearcher.isStandingOnArmor(gameMap, player)) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+
                     System.out.println("GUN: Executed. ");
-=======
+
                     System.out.println("ARMOR: Executed. ");
->>>>>>> Stashed changes
-=======
+
                     System.out.println("ARMOR: Executed. ");
->>>>>>> Stashed changes
+
                     if (armorSearcher.searchAndPickup(gameMap, player)) return;
                 } else if (armorSearcher.moveTo(gameMap, player)) {
                     return;
@@ -185,23 +179,19 @@ public class MapUpdateListener implements Emitter.Listener {
             if (chestDist < enemyDist) {
                 if (chestAndEggBreaker.breakIfAdjacent()) return;
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+
 //                if (hero.getInventory().getListSupportItem().size() < 4) {
 //                    if (healingItemSearcher.searchAndPickup(gameMap, player)) {
 //                        return;
 //                    }
 //                }
-=======
-=======
->>>>>>> Stashed changes
+
                 if (hero.getInventory().getListSupportItem().size() < 4) {
                     System.out.println("SUPPORT ITEM in Chest: Executed. ");
                     if (healingItemSearcher.searchAndPickup(gameMap, player)) {
                         return;
                     }
                 }
->>>>>>> Stashed changes
 
                 // Armor
                 if (hero.getInventory().getArmor() == null) {
