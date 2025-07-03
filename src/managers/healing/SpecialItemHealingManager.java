@@ -8,10 +8,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SpecialItemManager {
+public class SpecialItemHealingManager {
     private final Hero hero;
 
-    public SpecialItemManager(Hero hero) {
+    public SpecialItemHealingManager(Hero hero) {
         this.hero = hero;
     }
 

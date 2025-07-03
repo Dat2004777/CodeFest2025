@@ -7,7 +7,7 @@ import jsclub.codefest.sdk.model.players.Player;
 import managers.combat.CombatManager;
 import managers.combat.weapon.*;
 import managers.healing.HealingManager;
-import managers.healing.SpecialItemManager;
+import managers.healing.SpecialItemHealingManager;
 import searcher.ChestAndEggBreaker;
 import searcher.items.*;
 import utils.EnemyUtils;
@@ -26,7 +26,7 @@ public class MapUpdateListener implements Emitter.Listener {
     private final List<WeaponCombatStrategy> combatStrategies;
     private final CombatManager combatManager;
     private final HealingManager healingManager;
-    private final SpecialItemManager specialItemManager;
+    private final SpecialItemHealingManager specialItemHealingManager;
     private final SafeZoneHandler safeZoneHandler;
     private final HelmetSearcher helmetSearcher;
 
@@ -47,7 +47,7 @@ public class MapUpdateListener implements Emitter.Listener {
         );
         this.combatManager = new CombatManager(hero, combatStrategies);
         this.healingManager = new HealingManager(hero);
-        this.specialItemManager = new SpecialItemManager(hero);
+        this.specialItemHealingManager = new SpecialItemHealingManager(hero);
         this.safeZoneHandler = new SafeZoneHandler(hero);
         this.helmetSearcher = new HelmetSearcher(hero);
     }
@@ -82,7 +82,7 @@ public class MapUpdateListener implements Emitter.Listener {
             if (hp > 40 && hp <= 60) {
                 if (healingManager.handleHealingIfNeeded()) return;
             } else if (hp <= 40) {
-                if (specialItemManager.useSpecialItemsIfNeeded()) return;
+                if (specialItemHealingManager.useSpecialItemsIfNeeded()) return;
             }
 
             // nhặt súng
@@ -186,7 +186,7 @@ public class MapUpdateListener implements Emitter.Listener {
                 if (hp > 40 && hp <= 60) {
                     if (healingManager.handleHealingIfNeeded()) return;
                 } else if (hp <= 40) {
-                    if (specialItemManager.useSpecialItemsIfNeeded()) return;
+                    if (specialItemHealingManager.useSpecialItemsIfNeeded()) return;
                 }
 
                 combatManager.handleCombatIfNeeded(gameMap, player);
