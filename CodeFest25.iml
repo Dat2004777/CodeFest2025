@@ -7,7 +7,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+<<<<<<< Updated upstream
     <orderEntry type="library" name="CodeFest" level="project" />
     <orderEntry type="library" name="CodeFestv2.7" level="project" />
+=======
+    <orderEntry type="library" name="CodeFestv2.8" level="project" />
+>>>>>>> Stashed changes
   </component>
 </module>
