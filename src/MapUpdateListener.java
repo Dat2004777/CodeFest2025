@@ -91,12 +91,12 @@ public class MapUpdateListener implements Emitter.Listener {
                 return;
             }
 
-//            if (hero.getInventory().getListSupportItem().size() < 4) {
-//                System.out.println(hero.getInventory().getListSupportItem().size());
-//                if (healingItemSearcher.searchAndPickup(gameMap, player)) {
-//                    return;
-//                }
-//            }
+            if (hero.getInventory().getListSupportItem().size() < 4) {
+                System.out.println(hero.getInventory().getListSupportItem().size());
+                if (healingItemSearcher.searchAndPickup(gameMap, player)) {
+                    return;
+                }
+            }
 
             // Armor
             if (hero.getInventory().getArmor() == null) {
@@ -138,11 +138,11 @@ public class MapUpdateListener implements Emitter.Listener {
             if (chestDist < enemyDist) {
                 if (chestAndEggBreaker.breakIfAdjacent()) return;
 
-//                if (hero.getInventory().getListSupportItem().size() < 4) {
-//                    if (healingItemSearcher.searchAndPickup(gameMap, player)) {
-//                        return;
-//                    }
-//                }
+                if (hero.getInventory().getListSupportItem().size() < 4) {
+                    if (healingItemSearcher.searchAndPickup(gameMap, player)) {
+                        return;
+                    }
+                }
 
                 // Armor
                 if (hero.getInventory().getArmor() == null) {
