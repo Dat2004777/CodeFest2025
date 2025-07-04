@@ -15,7 +15,12 @@ public class ThrowableSearcher extends ItemSearcher<Weapon> {
 
     @Override
     protected List<Weapon> getCandidateItems(GameMap map) {
-        return map.getAllThrowable();
+        return map.getAllThrowable().stream()
+                .filter(w -> {
+                    String id = w.getId().toUpperCase();
+                    return !id.contains("SMOKE");
+                })
+                .toList();
     }
 
     @Override
