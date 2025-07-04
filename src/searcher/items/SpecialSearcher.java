@@ -15,7 +15,12 @@ public class SpecialSearcher extends ItemSearcher<Weapon> {
 
     @Override
     protected List<Weapon> getCandidateItems(GameMap map) {
-        return map.getAllSpecial();
+        return map.getAllSpecial().stream()
+                .filter(w -> {
+                    String id = w.getId().toUpperCase();
+                    return !id.contains("ROPE") && !id.contains("SAHUR_BAT");
+                })
+                .toList();
     }
 
     @Override
