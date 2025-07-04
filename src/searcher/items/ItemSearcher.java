@@ -5,6 +5,7 @@ import jsclub.codefest.sdk.base.Node;
 import jsclub.codefest.sdk.algorithm.PathUtils;
 import jsclub.codefest.sdk.model.Element;
 import jsclub.codefest.sdk.model.GameMap;
+import jsclub.codefest.sdk.model.obstacles.Obstacle;
 import jsclub.codefest.sdk.model.players.Player;
 import utils.DodgeUtils;
 
@@ -87,6 +88,9 @@ public abstract class ItemSearcher<T extends Element> {
             // ✅ Chỉ xét item trong vùng an toàn
             if (!PathUtils.checkInsideSafeArea(new Node(x, y), safeZone, mapSize)) continue;
 
+            // ❌ Bỏ qua nếu trên ô có vật cản không thể đi qua
+            if (isBlockedTile(map, x, y)) continue;
+
             int dist = Math.abs(x - player.getX()) + Math.abs(y - player.getY());
             if (dist < minDist) {
                 minDist = dist;
@@ -118,6 +122,20 @@ public abstract class ItemSearcher<T extends Element> {
 
         // Nếu có 2 item trở lên → là chồng lên nhau
         return count >= 2.0;
+    }
+
+    private boolean isBlockedTile(GameMap map, int x, int y) {
+        for (Obstacle obs : map.getListObstacles()) {
+            if (obs.getX() == x && obs.getY() == y) {
+                String id = obs.getId().toUpperCase();
+                if (id.contains("WALL") || id.contains("ROCK") || id.contains("BLOCK") || id.contains("STATUE")
+                        || id.contains("TRAP") || id.contains("INDESTRUCTIBLE") || id.contains("CHEST")
+                        || id.contains("DRAGON_EGG") || id.contains("HUNT_TRAP") || id.contains("BANANA_PEEL")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     protected abstract List<T> getCandidateItems(GameMap map);

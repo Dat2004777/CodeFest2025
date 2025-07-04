@@ -92,7 +92,6 @@ public class MapUpdateListener implements Emitter.Listener {
             }
 
             if (hero.getInventory().getListSupportItem().size() < 4) {
-                System.out.println(hero.getInventory().getListSupportItem().size());
                 if (healingItemSearcher.searchAndPickup(gameMap, player)) {
                     return;
                 }
@@ -107,37 +106,38 @@ public class MapUpdateListener implements Emitter.Listener {
                 }
             }
 
-            // Helmet
-            if (hero.getInventory().getHelmet() == null) {
-                if (helmetSearcher.isStandingOnHelmet(gameMap, player)) {
-                    if (helmetSearcher.searchAndPickup(gameMap, player)) return;
-                } else if (helmetSearcher.moveTo(gameMap, player)) {
-                    return;
-                }
-            }
+//            // Helmet
+//            if (hero.getInventory().getHelmet() == null) {
+//                if (helmetSearcher.isStandingOnHelmet(gameMap, player)) {
+//                    if (helmetSearcher.searchAndPickup(gameMap, player)) return;
+//                } else if (helmetSearcher.moveTo(gameMap, player)) {
+//                    return;
+//                }
+//            }
+//
+//            if (hero.getInventory().getMelee() == null
+//                    || "HAND".equalsIgnoreCase(hero.getInventory().getMelee().getId())) {
+//                if (meleeSearcher.searchAndPickup(gameMap, player)) {
+//                    return;
+//                }
+//            }
+//
+//            if (hero.getInventory().getThrowable() == null) {
+//                if (throwableSearcher.searchAndPickup(gameMap, player)) {
+//                    return;
+//                }
+//            }
+//
+//            if (hero.getInventory().getSpecial() == null) {
+//                if (specialSearcher.searchAndPickup(gameMap, player)) {
+//                    return;
+//                }
+//            }
 
-            if (hero.getInventory().getMelee() == null
-                    || "HAND".equalsIgnoreCase(hero.getInventory().getMelee().getId())) {
-                if (meleeSearcher.searchAndPickup(gameMap, player)) {
-                    return;
-                }
-            }
-
-            if (hero.getInventory().getThrowable() == null) {
-                if (throwableSearcher.searchAndPickup(gameMap, player)) {
-                    return;
-                }
-            }
-
-            if (hero.getInventory().getSpecial() == null) {
-                if (specialSearcher.searchAndPickup(gameMap, player)) {
-                    return;
-                }
-            }
-
-            if (chestDist < enemyDist) {
+            if (chestDist < enemyDist && !isInventoryFull()) {
                 if (chestAndEggBreaker.breakIfAdjacent()) return;
 
+                // HealingItem
                 if (hero.getInventory().getListSupportItem().size() < 4) {
                     if (healingItemSearcher.searchAndPickup(gameMap, player)) {
                         return;
@@ -162,6 +162,7 @@ public class MapUpdateListener implements Emitter.Listener {
                     }
                 }
 
+                // melee
                 if (hero.getInventory().getMelee() == null
                         || "HAND".equalsIgnoreCase(hero.getInventory().getMelee().getId())) {
                     if (meleeSearcher.searchAndPickup(gameMap, player)) {
@@ -169,12 +170,14 @@ public class MapUpdateListener implements Emitter.Listener {
                     }
                 }
 
+                // throwable
                 if (hero.getInventory().getThrowable() == null) {
                     if (throwableSearcher.searchAndPickup(gameMap, player)) {
                         return;
                     }
                 }
 
+                // special
                 if (hero.getInventory().getSpecial() == null) {
                     if (specialSearcher.searchAndPickup(gameMap, player)) {
                         return;
@@ -197,4 +200,15 @@ public class MapUpdateListener implements Emitter.Listener {
             e.printStackTrace();
         }
     }
+
+    private boolean isInventoryFull() {
+        return hero.getInventory().getGun() != null
+                && hero.getInventory().getArmor() != null
+                && hero.getInventory().getHelmet() != null
+                && hero.getInventory().getMelee() != null
+                && hero.getInventory().getThrowable() != null
+                && hero.getInventory().getSpecial() != null
+                && hero.getInventory().getListSupportItem().size() >= 4;
+    }
+
 }
