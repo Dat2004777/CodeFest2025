@@ -41,12 +41,11 @@ public class ThrowableCombatStrategy extends WeaponCombatStrategy {
         if (throwable == null) return false;
 
         String dir = getDirection(self, target);
-        int range = extractThrowableRange(throwable);
 
         if (!dir.isEmpty() && isPathClear(self, target)) {
             try {
-                hero.throwItem(dir, range);
-                System.out.println("🧨 Throwing " + throwable.getId() + " at: " + dir + " (range: " + range + ")");
+                hero.throwItem(dir);
+                System.out.println("🧨 Throwing " + throwable.getId() + " at: " + dir);
                 return true;
             } catch (IOException e) {
                 System.err.println("⚠️ Throwable failed: " + e.getMessage());

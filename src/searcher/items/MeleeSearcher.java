@@ -9,7 +9,6 @@ import jsclub.codefest.sdk.model.weapon.Weapon;
 import utils.DodgeUtils;
 import utils.WeaponEvaluator;
 
-
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
@@ -21,61 +20,93 @@ public class MeleeSearcher extends ItemSearcher<Weapon> {
         super(hero);
         this.evaluator = evaluator;
     }
+
     public MeleeSearcher(Hero hero) {
         super(hero);
     }
 
+    @Override
     public boolean searchAndPickup(GameMap map, Player player) {
         Weapon currentMelee = hero.getInventory().getMelee();
         Weapon bestMelee = super.findClosestItem(map, player);
         if (bestMelee == null) return false;
 
-        // Nếu đang cầm súng, so sánh priority
-        if (currentMelee != null) {
+        int dist = Math.abs(player.getX() - bestMelee.getX()) + Math.abs(player.getY() - bestMelee.getY());
+
+        boolean hasRealMelee = currentMelee != null && !currentMelee.getId().equals("HAND");
+
+        // Nếu có vũ khí hiện tại → đánh giá
+        if (hasRealMelee && evaluator != null) {
             int newScore = evaluator.evaluate(bestMelee);
             int currentScore = evaluator.evaluate(currentMelee);
 
             if (newScore < currentScore) {
-                System.out.println("🔽 Skipping lower priority gun: " + bestMelee.getId());
+                System.out.println("🔽 Skipping lower priority melee weapon: " + bestMelee.getId());
+                return false;
+            }
+        }
+
+        // Trường hợp 1: đứng tại vũ khí
+        if (dist == 0 && hasRealMelee) {
+            try {
+                hero.revokeItem(currentMelee.getId());
+                System.out.println("♻️ Replaced current melee with: " + bestMelee.getId());
+            } catch (IOException e) {
+                System.err.println("❌ Failed to revoke melee: " + e.getMessage());
                 return false;
             }
 
-            // Tính đường đi đến súng
+            try {
+                hero.pickupItem();
+                System.out.println("✅ Picked up melee: " + bestMelee.getId());
+                return true;
+            } catch (IOException e) {
+                System.err.println("❌ Failed to pick up melee: " + e.getMessage());
+                return false;
+            }
+        }
+
+        // Trường hợp 2: cách 1 ô → chuẩn bị đổi
+        if (dist == 1 && hasRealMelee) {
+            try {
+                hero.revokeItem(currentMelee.getId());
+                System.out.println("♻️ Revoked melee before moving to: " + bestMelee.getId());
+            } catch (IOException e) {
+                System.err.println("❌ Failed to revoke melee: " + e.getMessage());
+                return false;
+            }
+
             Node from = new Node(player.getX(), player.getY());
             Node to = new Node(bestMelee.getX(), bestMelee.getY());
             List<Node> avoid = DodgeUtils.getUnwalkableNodes(map);
 
             String path = PathUtils.getShortestPath(map, avoid, from, to, false);
-            if (path != null && path.length() == 1) {
+            if (path != null && !path.isEmpty()) {
                 try {
-                    hero.revokeItem(currentMelee.getId());
-                    System.out.println("♻️ Preparing to replace current melee with: " + bestMelee.getId());
+                    hero.move(path);
+                    System.out.println("➡️ Moving to melee after revoke: " + path);
+                    return true;
                 } catch (IOException e) {
-                    System.err.println("❌ Failed to revoke current melee: " + e.getMessage());
-                    return false;
+                    System.err.println("❌ Failed to move to melee: " + e.getMessage());
                 }
             }
-
-            // Nếu đã đứng ngay trên súng thì cũng cần revoke
-            if (player.getX() == bestMelee.getX() && player.getY() == bestMelee.getY()) {
-                try {
-                    hero.revokeItem(currentMelee.getId());
-                    System.out.println("♻️ Replaced current melee with: " + bestMelee.getId());
-                } catch (IOException e) {
-                    System.err.println("❌ Failed to revoke current melee: " + e.getMessage());
-                    return false;
-                }
-            }
+            return false;
         }
 
-        // Gọi hàm gốc để thực hiện move & pickup
+        // Trường hợp 3: chưa gần → fallback
         return super.searchAndPickup(map, player);
     }
 
     @Override
     protected List<Weapon> getCandidateItems(GameMap map) {
         List<Weapon> melees = map.getAllMelee();
-        melees.sort(Comparator.comparingInt((Weapon melee) -> evaluator.evaluate(melee)).reversed());
+        // Bỏ HAND ra khỏi danh sách
+        melees.removeIf(w -> w.getId().equals("HAND"));
+
+        if (evaluator != null) {
+            melees.sort(Comparator.comparingInt(evaluator::evaluate).reversed());
+        }
+
         return melees;
     }
 

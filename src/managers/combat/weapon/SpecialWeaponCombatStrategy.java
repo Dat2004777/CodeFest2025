@@ -19,7 +19,7 @@ public class SpecialWeaponCombatStrategy extends WeaponCombatStrategy {
     @Override
     public boolean isUsable() {
         Weapon special = hero.getInventory().getSpecial();
-        return special != null && special.getUseCounts() > 0;
+        return special != null && special.getUseCount() > 0;
     }
 
     @Override

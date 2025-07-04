@@ -1,3 +1,4 @@
+import jsclub.codefest.sdk.model.support_items.SupportItem;
 import jsclub.codefest.sdk.model.weapon.Weapon;
 import managers.*;
 
@@ -58,17 +59,20 @@ public class MapUpdateListener implements Emitter.Listener {
 
     // GUN priority
     Map<String, Integer> gunPriority = Map.of(
-            "AK47", 100,
-            "UZI", 80,
-            "PISTOL", 50,
-            "REVOLVER", 60
+            "SHOTGUN", 100,
+            "SCEPTER", 80,
+            "CROSSBOW", 60,
+            "RUBBER_GUN", 20
     );
     WeaponEvaluator<Weapon> gunEvaluator = new SimpleWeaponEvaluator<>(gunPriority);
 
     // MELEE priority
     Map<String, Integer> meleePriority = Map.of(
-            "KNIFE", 90,
-            "TREE_BRANCH", 60,
+            "MACE", 100,
+            "AXE", 80,
+            "KNIFE", 60,
+            "TREE_BRANCH", 40,
+            "BONE", 20,
             "HAND", 10
     );
     WeaponEvaluator<Weapon> meleeEvaluator = new SimpleWeaponEvaluator<>(meleePriority);
@@ -97,6 +101,7 @@ public class MapUpdateListener implements Emitter.Listener {
 
             if (!safeZoneHandler.isInSafeZone(player)) {
                 safeZoneHandler.moveToSafeZone(player);
+                System.out.println("SAFEZONE: Executed. ");
                 return;
             }
 
@@ -124,20 +129,20 @@ public class MapUpdateListener implements Emitter.Listener {
             if (hero.getInventory().getListSupportItem().size() < 4) {
                 System.out.println("SUPPORT ITEM: Executed. ");
                 if (healingItemSearcher.searchAndPickup(gameMap, player)) {
+                    System.out.println("NUMBER OF SUPPORTING ITEM: "+ hero.getInventory().getListSupportItem().size());
+                    for (SupportItem supportItem : hero.getInventory().getListSupportItem()) {
+                        System.out.print(supportItem+" - ");
+                    }
+
                     return;
                 }
+
             }
 
             // Armor
             if (hero.getInventory().getArmor() == null) {
                 if (armorSearcher.isStandingOnArmor(gameMap, player)) {
-
-                    System.out.println("GUN: Executed. ");
-
                     System.out.println("ARMOR: Executed. ");
-
-                    System.out.println("ARMOR: Executed. ");
-
                     if (armorSearcher.searchAndPickup(gameMap, player)) return;
                 } else if (armorSearcher.moveTo(gameMap, player)) {
                     return;
@@ -186,54 +191,54 @@ public class MapUpdateListener implements Emitter.Listener {
 //                    }
 //                }
 
-                if (hero.getInventory().getListSupportItem().size() < 4) {
-                    System.out.println("SUPPORT ITEM in Chest: Executed. ");
-                    if (healingItemSearcher.searchAndPickup(gameMap, player)) {
-                        return;
-                    }
-                }
-
-                // Armor
-                if (hero.getInventory().getArmor() == null) {
-                    if (armorSearcher.isStandingOnArmor(gameMap, player)) {
-                        System.out.println("ARMOR in Chest: Executed. ");
-                        if (armorSearcher.searchAndPickup(gameMap, player)) return;
-                    } else if (armorSearcher.moveTo(gameMap, player)) {
-                        return;
-                    }
-                }
-
-                // Helmet
-                if (hero.getInventory().getHelmet() == null) {
-                    if (helmetSearcher.isStandingOnHelmet(gameMap, player)) {
-                        System.out.println("HELMET in Chest: Executed. ");
-                        if (helmetSearcher.searchAndPickup(gameMap, player)) return;
-                    } else if (helmetSearcher.moveTo(gameMap, player)) {
-                        return;
-                    }
-                }
-
-                if (hero.getInventory().getMelee() == null
-                        || "HAND".equalsIgnoreCase(hero.getInventory().getMelee().getId())) {
-                    System.out.println("MELEE in Chest: Executed. ");
-                    if (meleeSearcher.searchAndPickup(gameMap, player)) {
-                        return;
-                    }
-                }
-
-                if (hero.getInventory().getThrowable() == null) {
-                    System.out.println("THROWABLE in Chest: Executed. ");
-                    if (throwableSearcher.searchAndPickup(gameMap, player)) {
-                        return;
-                    }
-                }
-
-                if (hero.getInventory().getSpecial() == null) {
-                    System.out.println("SPECIAL in Chest: Executed. ");
-                    if (specialSearcher.searchAndPickup(gameMap, player)) {
-                        return;
-                    }
-                }
+//                if (hero.getInventory().getListSupportItem().size() < 4) {
+//                    System.out.println("SUPPORT ITEM in Chest: Executed. ");
+//                    if (healingItemSearcher.searchAndPickup(gameMap, player)) {
+//                        return;
+//                    }
+//                }
+//
+//                // Armor
+//                if (hero.getInventory().getArmor() == null) {
+//                    if (armorSearcher.isStandingOnArmor(gameMap, player)) {
+//                        System.out.println("ARMOR in Chest: Executed. ");
+//                        if (armorSearcher.searchAndPickup(gameMap, player)) return;
+//                    } else if (armorSearcher.moveTo(gameMap, player)) {
+//                        return;
+//                    }
+//                }
+//
+//                // Helmet
+//                if (hero.getInventory().getHelmet() == null) {
+//                    if (helmetSearcher.isStandingOnHelmet(gameMap, player)) {
+//                        System.out.println("HELMET in Chest: Executed. ");
+//                        if (helmetSearcher.searchAndPickup(gameMap, player)) return;
+//                    } else if (helmetSearcher.moveTo(gameMap, player)) {
+//                        return;
+//                    }
+//                }
+//
+//                if (hero.getInventory().getMelee() == null
+//                        || "HAND".equalsIgnoreCase(hero.getInventory().getMelee().getId())) {
+//                    System.out.println("MELEE in Chest: Executed. ");
+//                    if (meleeSearcher.searchAndPickup(gameMap, player)) {
+//                        return;
+//                    }
+//                }
+//
+//                if (hero.getInventory().getThrowable() == null) {
+//                    System.out.println("THROWABLE in Chest: Executed. ");
+//                    if (throwableSearcher.searchAndPickup(gameMap, player)) {
+//                        return;
+//                    }
+//                }
+//
+//                if (hero.getInventory().getSpecial() == null) {
+//                    System.out.println("SPECIAL in Chest: Executed. ");
+//                    if (specialSearcher.searchAndPickup(gameMap, player)) {
+//                        return;
+//                    }
+//                }
 
                 chestAndEggBreaker.moveToChestOrEgg();
             } else {
@@ -246,12 +251,7 @@ public class MapUpdateListener implements Emitter.Listener {
                 combatManager.handleCombatIfNeeded(gameMap, player);
             }
 
-            if (hero.getInventory().getGun() != null && hero.getInventory().getMelee() != null) {
-                if (gunSearcher.searchAndPickup(gameMap, player)) return;
-                if (meleeSearcher.searchAndPickup(gameMap, player)) return;
-            }
-
-            if (hero.getInventory().getGun() != null && hero.getInventory().getMelee() != null) {
+            if (hero.getInventory().getGun() != null && (hero.getInventory().getMelee() != null || "HAND".equalsIgnoreCase(hero.getInventory().getMelee().getId()))) {
                 if (gunSearcher.searchAndPickup(gameMap, player)) return;
                 if (meleeSearcher.searchAndPickup(gameMap, player)) return;
             }

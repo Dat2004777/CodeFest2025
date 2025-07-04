@@ -32,9 +32,12 @@ public class SafeZoneHandler {
         GameMap map = hero.getGameMap();
         int mapSize = map.getMapSize();
         int safeZone = map.getSafeZone();
+        int centerNode = (int) Math.sqrt(mapSize)/2;
 
         Node current = new Node(player.getX(), player.getY());
-        Node center = new Node(mapSize / 2, mapSize / 2);
+        Node center = new Node(centerNode, centerNode);
+
+
 
         // Nếu đang trong vùng an toàn thì không cần di chuyển
         if (PathUtils.checkInsideSafeArea(current, safeZone, mapSize)) {
