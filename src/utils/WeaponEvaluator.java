@@ -1,5 +1,5 @@
 package utils;
 
-public interface WeaponEvaluator {
-    
+public interface WeaponEvaluator <T> {
+
 }
