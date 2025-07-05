@@ -67,8 +67,8 @@ public class MapUpdateListener implements Emitter.Listener {
         this.throwableSearcher = new ThrowableSearcher(hero);
         this.chestAndEggBreaker = new ChestAndEggBreaker(hero);
         this.combatStrategies = List.of(
-                new MeleeCombatStrategy(hero),
                 new GunCombatStrategy(hero),
+                new MeleeCombatStrategy(hero),
                 new ThrowableCombatStrategy(hero),
                 new SpecialWeaponCombatStrategy(hero)
         );
@@ -107,10 +107,13 @@ public class MapUpdateListener implements Emitter.Listener {
                 return;
             }
 
-            if (hp > 40 && hp <= 60) {
-                if (healingManager.handleHealingIfNeeded()) return;
-            } else if (hp <= 40) {
+            // Trường hợp 1: HP thấp hơn 40 → dùng item đặc biệt
+            if (hp <= 40) {
                 if (specialItemHealingManager.useSpecialItemsIfNeeded()) return;
+            }
+            // Trường hợp 2: HP từ 41-60 → dùng item hồi máu nếu có
+            else {
+                if (healingManager.handleHealingIfNeeded()) return;
             }
 
             // nhặt súng
@@ -214,13 +217,24 @@ public class MapUpdateListener implements Emitter.Listener {
 
                 chestAndEggBreaker.moveToChestOrEgg();
             } else {
-                if (hp > 40 && hp <= 60) {
-                    if (healingManager.handleHealingIfNeeded()) return;
-                } else if (hp <= 40) {
+                // Trường hợp 1: HP thấp hơn 40 → dùng item đặc biệt
+                if (hp <= 40) {
                     if (specialItemHealingManager.useSpecialItemsIfNeeded()) return;
+                }
+                // Trường hợp 2: HP từ 41-60 → dùng item hồi máu nếu có
+                else {
+                    if (healingManager.handleHealingIfNeeded()) return;
                 }
 
                 combatManager.handleCombatIfNeeded(gameMap, player);
+            }
+
+            // 2. Revoke item logic (nếu cần)
+            if (hero.getInventory().getGun() != null && !Objects.equals(hero.getInventory().getMelee().getId(), "HAND")) {
+                if (revokeManager.handleRevokeBeforeSearch(gameMap, player)) {
+                    System.out.println("REVOKE: Executed.");
+                    return;
+                }
             }
 
         } catch (Exception e) {
