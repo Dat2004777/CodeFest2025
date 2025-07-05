@@ -1,3 +1,5 @@
+import jsclub.codefest.sdk.model.support_items.SupportItem;
+import jsclub.codefest.sdk.model.weapon.Weapon;
 import managers.*;
 
 import io.socket.emitter.Emitter;
@@ -11,8 +13,12 @@ import managers.healing.SpecialItemHealingManager;
 import searcher.ChestAndEggBreaker;
 import searcher.items.*;
 import utils.EnemyUtils;
+import utils.SimpleWeaponEvaluator;
+import utils.WeaponEvaluator;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class MapUpdateListener implements Emitter.Listener {
     private final Hero hero;
@@ -29,6 +35,27 @@ public class MapUpdateListener implements Emitter.Listener {
     private final SpecialItemHealingManager specialItemHealingManager;
     private final SafeZoneHandler safeZoneHandler;
     private final HelmetSearcher helmetSearcher;
+    private final ItemRevokeManager revokeManager;
+
+    // GUN priority
+    Map<String, Integer> gunPriority = Map.of(
+            "SHOTGUN", 100,
+            "SCEPTER", 80,
+            "CROSSBOW", 60,
+            "RUBBER_GUN", 20
+    );
+    WeaponEvaluator<Weapon> gunEvaluator = new SimpleWeaponEvaluator<>(gunPriority);
+
+    // MELEE priority
+    Map<String, Integer> meleePriority = Map.of(
+            "MACE", 100,
+            "AXE", 80,
+            "KNIFE", 60,
+            "TREE_BRANCH", 40,
+            "BONE", 20,
+            "HAND", 10
+    );
+    WeaponEvaluator<Weapon> meleeEvaluator = new SimpleWeaponEvaluator<>(meleePriority);
 
     public MapUpdateListener(Hero hero) {
         this.hero = hero;
@@ -50,6 +77,7 @@ public class MapUpdateListener implements Emitter.Listener {
         this.specialItemHealingManager = new SpecialItemHealingManager(hero);
         this.safeZoneHandler = new SafeZoneHandler(hero);
         this.helmetSearcher = new HelmetSearcher(hero);
+        this.revokeManager = new ItemRevokeManager(hero, gunEvaluator, meleeEvaluator);
     }
 
     @Override
