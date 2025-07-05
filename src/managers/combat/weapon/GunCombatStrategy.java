@@ -103,7 +103,6 @@ public class GunCombatStrategy extends WeaponCombatStrategy {
             case "SCEPTER": return 12;
             case "CROSSBOW": return 5;
             case "RUBBER_GUN": return 6;
-            case "SHOTGUN": return 2;
             default: return 3;
         }
     }

@@ -6,9 +6,9 @@ import java.io.IOException;
 
 public class Main {
     private static final String SERVER_URL = "https://cf25-server.jsclub.dev";
-    private static final String GAME_ID = "191116";
-    private static final String PLAYER_NAME = "NguyenDatJ";
-    private static final String SECRET_KEY = "sk-SiultJO7Q3WSN5zJv2qNUw:0D6bZVr7QILv9G2Mhl1mPKGxiqWbzILb_LHIsnYHSvvIXeSg0xveUat7GV8kJ8PWPrSFSXe4FJhQrQHkP2RjOA";
+    private static final String GAME_ID = "181274";
+    private static final String PLAYER_NAME = "OVERCODE";
+    private static final String SECRET_KEY = "sk-4ynpZklBRsydHRDzeqt7cg:PcnMFvBohG5NKs_MXtRq07Bi3PipeEBURBuOp-kraAbkgKoCgW1lpKnT6tQhN3msjZQfz4WqxTyU_qbwQ9y5rQ";
 
 
     public static void main(String[] args) throws IOException {

@@ -67,6 +67,7 @@ public class MapUpdateListener implements Emitter.Listener {
         this.throwableSearcher = new ThrowableSearcher(hero);
         this.chestAndEggBreaker = new ChestAndEggBreaker(hero);
         this.combatStrategies = List.of(
+                new ShotgunCombatStrategy(hero),
                 new MeleeCombatStrategy(hero),
                 new GunCombatStrategy(hero),
                 new ThrowableCombatStrategy(hero),
@@ -116,14 +117,15 @@ public class MapUpdateListener implements Emitter.Listener {
             }
 
             // 3. Healing logic
-            if (hp > 40 && hp <= 60) {
+             if (hp <= 40) {
+                 if (specialItemManager.useSpecialItemsIfNeeded()) {
+                     System.out.println("SPECIAL HEAL: Executed.");
+                     return;
+                 }
+             }
+            else {
                 if (healingManager.handleHealingIfNeeded()) {
                     System.out.println("HEALING: Executed.");
-                    return;
-                }
-            } else if (hp <= 40) {
-                if (specialItemManager.useSpecialItemsIfNeeded()) {
-                    System.out.println("SPECIAL HEAL: Executed.");
                     return;
                 }
             }
